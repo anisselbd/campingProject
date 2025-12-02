@@ -32,7 +32,7 @@ const getById = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'Utilisateur non trouvé' });
         }
-        const { password_hash, ...userWithoutPassword } = user;
+        const { password, ...userWithoutPassword } = user;
         res.status(200).json(userWithoutPassword);
     } catch (error) {
         console.error('Erreur lors de la récupération de l\'utilisateur:', error);
@@ -86,12 +86,12 @@ const login = async (req, res) => {
         if (!user.compte_actif) {
             return res.status(403).json({ message: 'Votre compte est désactivé' });
         }
-        const isValidPassword = await verifyPassword(password, user.password_hash);
+        const isValidPassword = await verifyPassword(password, user.password);
         if (!isValidPassword) {
             return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
         }
         await updateLastLogin(user.id_user);
-        const { password_hash, ...userWithoutPassword } = user;
+        const { password: userPassword, ...userWithoutPassword } = user;
 
         // Générer les tokens
         const token = generateToken(user);
@@ -153,7 +153,7 @@ const changePassword = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'Utilisateur non trouvé' });
         }
-        const isValidPassword = await verifyPassword(oldPassword, user.password_hash);
+        const isValidPassword = await verifyPassword(oldPassword, user.password);
         if (!isValidPassword) {
             return res.status(401).json({ message: 'Ancien mot de passe incorrect' });
         }
@@ -166,7 +166,7 @@ const changePassword = async (req, res) => {
 };
 
 
-const remove = async (req, res) => {
+const remove = async (req, res) => { 
     try {
         const { id } = req.params;
         const user = await getUserById(id);
