@@ -5,6 +5,7 @@ import { testConnection } from './config/bdd.js';
 import usersRoutes from './routes/usersRoutes.js';
 import hebergementsRoutes from './routes/hebergementsRoutes.js';
 import typesHebergementRoutes from './routes/typesHebergementRoutes.js';
+import employeeRoutes from "./routes/employeeRoutes.js";
 
 // Charger les variables d'environnement
 dotenv.config();
@@ -22,7 +23,7 @@ testConnection();
 
 // Route de base
 app.get('/', (req, res) => {
-    res.json({ 
+    res.json({
         message: 'Bienvenue sur l\'API du Camping',
         status: 'online'
     });
@@ -32,6 +33,7 @@ app.get('/', (req, res) => {
 app.use('/api/users', usersRoutes);
 app.use('/api/hebergements', hebergementsRoutes);
 app.use('/api/types-hebergement', typesHebergementRoutes);
+app.use('/api/employee', employeeRoutes);
 
 app.use((req, res) => {
     res.status(404).json({ message: 'Route non trouvée' });
