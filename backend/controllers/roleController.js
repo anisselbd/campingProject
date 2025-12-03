@@ -89,7 +89,7 @@ const deleteRole = async (req, res) => {
         if (affectedRows === 0) {
             res.status(404).json({ message: "Aucun role trouvé." })
         } else {
-            res.status(200).json({ message: "Role supprimé avec succès." })
+            res.status(200).json({ message: "Role supprimé avec succès.", affectedRows })
         }
     } catch (error) {
         res.status(500).json({ message: "Suppression du role impossible." })
