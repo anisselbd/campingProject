@@ -5,6 +5,8 @@ import { testConnection } from './config/bdd.js';
 import usersRoutes from './routes/usersRoutes.js';
 import hebergementsRoutes from './routes/hebergementsRoutes.js';
 import typesHebergementRoutes from './routes/typesHebergementRoutes.js';
+import rolesRoutes from "./routes/rolesRoutes.js";
+import ticketsRoutes from "./routes/ticketsRoutes.js";
 import employeeRoutes from "./routes/employeeRoutes.js";
 
 // Charger les variables d'environnement
@@ -33,6 +35,8 @@ app.get('/', (req, res) => {
 app.use('/api/users', usersRoutes);
 app.use('/api/hebergements', hebergementsRoutes);
 app.use('/api/types-hebergement', typesHebergementRoutes);
+app.use("/api/roles", rolesRoutes);
+app.use("/api/tickets", ticketsRoutes);
 app.use('/api/employee', employeeRoutes);
 
 app.use((req, res) => {
