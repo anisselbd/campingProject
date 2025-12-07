@@ -7,7 +7,6 @@ const getAllRoleAffectations = async (req, res) => {
         const roleAffectations = await roleAffectationModel.getAllRoleAffectations();
         return res.status(200).json({ message: "Récupération des roles réussies.", roleAffectations });
     } catch (error) {
-        console.log("Erreur lors de la récupération des roles", error);
         return res.status(500).json({ message: "Récupération des affectations des roles impossible." });
     }
 }
@@ -28,7 +27,6 @@ const getAffectationById = async (req, res) => {
         });
 
     } catch (error) {
-        console.log("Erreur lors de la récupération de l'affectation.", error);
         return res.status(500).json({ message: "Impossible de récupérer l'affectation." });
     }
 };
@@ -45,7 +43,6 @@ const getRoleAffectationByUserIdByRoleId = async (req, res) => {
         }
 
     } catch (error) {
-        console.log("Erreur lors de la récupération du role via son ID", error);
         return res.status(500).json({ message: "Récupération du role via son ID impossible." });
     }
 }
@@ -62,7 +59,6 @@ const getRoleByUserId = async (req, res) => {
         }
 
     } catch (error) {
-        console.log("Erreur lors de la récupération de l'utilisateur via son ID.");
         return res.status(500).json({ message: "Récupération du role utilisateur via son ID impossible." });
     }
 }
@@ -98,7 +94,6 @@ const createAffectation = async (req, res) => {
         return res.status(201).json({ message: "Création de l'affectation réussie", result });
 
     } catch (error) {
-        console.log("Erreur lors de la création de l'affectation.");
         return res.status(500).json({ message: "Création de l'affectation impossible.", error: error.message });
     }
 }
@@ -123,7 +118,6 @@ const updateAffectation = async (req, res) => {
         }
 
     } catch (error) {
-        console.log("Erreur lors de la mise à jour de l'affectation.");
         return res.status(500).json({ message: "Mise à jour de l'affectation impossible." });
     }
 }
@@ -139,7 +133,6 @@ const deleteRoleAffectation = async (req, res) => {
             return res.status(200).json({ message: "Suppression de l'affectation réussie.", deleteRoleAffectation });
         }
     } catch (error) {
-        console.log("Erreur lors de la suppression de l'affectation.");
         return res.status(500).json({ message: "Suppression de l'affectation impossible." });
     }
 }
