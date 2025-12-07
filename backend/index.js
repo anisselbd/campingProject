@@ -11,6 +11,7 @@ import employeeRoutes from "./routes/employeeRoutes.js";
 import emailLogsRoutes from "./routes/emailLogsRoutes.js";
 import roleAffectationsRoutes from "./routes/roleAffectationsRoutes.js";
 import equipmentsRoutes from "./routes/equipmentsRoutes.js";
+import hebergementEquipementsRoutes from "./routes/hebergementEquipementsRoutes.js";
 
 // Charger les variables d'environnement
 dotenv.config();
@@ -44,6 +45,7 @@ app.use('/api/employee', employeeRoutes);
 app.use("/api/log", emailLogsRoutes);
 app.use("/api/affectation", roleAffectationsRoutes);
 app.use("/api/equipment", equipmentsRoutes);
+app.use("/api/hebergementEquipement", hebergementEquipementsRoutes);
 
 app.use((req, res) => {
     res.status(404).json({ message: 'Route non trouvée' });
