@@ -16,7 +16,6 @@ export function Dashboard() {
     const [hebergementsLoading, setHebergementsLoading] = useState(true);
     const [hebergementsError, setHebergementsError] = useState(null);
     const [typesHebergement, setTypesHebergement] = useState([]);
-    // Modal d'édition
     const [editModalOpened, { open: openEditModal, close: closeEditModal }] = useDisclosure(false);
     const [editingHebergement, setEditingHebergement] = useState(null);
     const [editForm, setEditForm] = useState({
@@ -27,7 +26,6 @@ export function Dashboard() {
         localisation: ''
     });
 
-    // Modal d'ajout
     const [addModalOpened, { open: openAddModal, close: closeAddModal }] = useDisclosure(false);
     const [addForm, setAddForm] = useState({
         type_hebergement: '',
@@ -40,7 +38,6 @@ export function Dashboard() {
         reservable: true
     });
 
-    // Modal d'ajout de type
     const [typeModalOpened, { open: openTypeModal, close: closeTypeModal }] = useDisclosure(false);
     const [newTypeForm, setNewTypeForm] = useState({
         nom: '',
@@ -92,7 +89,6 @@ export function Dashboard() {
         if (token) fetchHebergements();
     }, [token]);
 
-    // Charger les types d'hébergement
     useEffect(() => {
         const fetchTypes = async () => {
             try {
@@ -158,7 +154,6 @@ export function Dashboard() {
         }
     };
 
-    // Ouvrir le modal d'édition
     const handleOpenEditModal = (hebergement) => {
         setEditingHebergement(hebergement);
         setEditForm({
@@ -171,7 +166,6 @@ export function Dashboard() {
         openEditModal();
     };
 
-    // Sauvegarder les modifications
     const handleSaveHebergement = async () => {
         try {
             await axios.put(`/api/hebergements/${editingHebergement.id_hebergement}`, editForm, {
@@ -186,10 +180,8 @@ export function Dashboard() {
         }
     };
 
-    // Créer un nouvel hébergement
     const handleCreateHebergement = async () => {
         try {
-            // Préparer le payload avec reservable en entier
             const payload = {
                 ...addForm,
                 reservable: addForm.reservable ? 1 : 0
@@ -197,11 +189,9 @@ export function Dashboard() {
             const response = await axios.post('/api/hebergements', payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            // Recharger la liste pour avoir les données complètes
             const newHebergement = { ...addForm, id_hebergement: response.data.hebergementId };
             setHebergements([...hebergements, newHebergement]);
             closeAddModal();
-            // Reset du formulaire
             setAddForm({
                 type_hebergement: '',
                 reference_interne: '',
@@ -218,7 +208,6 @@ export function Dashboard() {
         }
     };
 
-    // Créer un nouveau type d'hébergement
     const handleCreateType = async () => {
         try {
             const response = await axios.post('/api/types-hebergement', newTypeForm, {
@@ -226,7 +215,6 @@ export function Dashboard() {
             });
             const newType = { ...newTypeForm, id_type: response.data.typeId };
             setTypesHebergement([...typesHebergement, newType]);
-            // Sélectionner automatiquement le nouveau type
             setAddForm({ ...addForm, type_hebergement: response.data.typeId });
             closeTypeModal();
             setNewTypeForm({ nom: '', code: '', description: '' });
@@ -236,7 +224,6 @@ export function Dashboard() {
         }
     };
 
-    // Gérer la sélection du type (y compris "nouveau")
     const handleTypeSelect = (val) => {
         if (val === 'new') {
             openTypeModal();
