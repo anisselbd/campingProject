@@ -5,6 +5,9 @@ import { testConnection } from './config/bdd.js';
 import usersRoutes from './routes/usersRoutes.js';
 import hebergementsRoutes from './routes/hebergementsRoutes.js';
 import typesHebergementRoutes from './routes/typesHebergementRoutes.js';
+import bookingRoutes from './routes/bookingRoutes.js';
+import optionRoutes from './routes/optionRoutes.js';
+
 import rolesRoutes from "./routes/rolesRoutes.js";
 import ticketsRoutes from "./routes/ticketsRoutes.js";
 import employeeRoutes from "./routes/employeeRoutes.js";
@@ -39,6 +42,12 @@ app.get('/', (req, res) => {
 app.use('/api/users', usersRoutes);
 app.use('/api/hebergements', hebergementsRoutes);
 app.use('/api/types-hebergement', typesHebergementRoutes);
+app.use('/api/booking', bookingRoutes);
+app.use('/api/option', optionRoutes);
+
+
+
+// Gestion des erreurs
 app.use("/api/roles", rolesRoutes);
 app.use("/api/tickets", ticketsRoutes);
 app.use('/api/employee', employeeRoutes);
