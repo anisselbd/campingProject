@@ -8,6 +8,7 @@ const authMiddleware = (req, res, next) => {
         }
         const token = authHeader.split(' ')[1];
         if (!token) {
+            console.log(token);
             return res.status(401).json({ message: 'Token invalide' });
         }
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -18,7 +19,7 @@ const authMiddleware = (req, res, next) => {
         if (error.name === 'TokenExpiredError') {
             return res.status(401).json({ message: 'Token expiré' });
         }
-        return res.status(401).json({ message: 'Token invalide' });
+        return res.status(401).json({ message: 'Token invalide', error });
     }
 };
 

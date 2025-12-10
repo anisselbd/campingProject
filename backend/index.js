@@ -8,8 +8,10 @@ import typesHebergementRoutes from './routes/typesHebergementRoutes.js';
 import rolesRoutes from "./routes/rolesRoutes.js";
 import ticketsRoutes from "./routes/ticketsRoutes.js";
 import employeeRoutes from "./routes/employeeRoutes.js";
+import seasonRoutes from './routes/seasonRoutes.js';
+import tarifRoutes from './routes/tarifRoutes.js';
 
-// Charger les variables d'environnement
+// // Charger les variables d'environnement
 dotenv.config();
 
 const app = express();
@@ -38,6 +40,9 @@ app.use('/api/types-hebergement', typesHebergementRoutes);
 app.use("/api/roles", rolesRoutes);
 app.use("/api/tickets", ticketsRoutes);
 app.use('/api/employee', employeeRoutes);
+app.use('/api/season', seasonRoutes);
+app.use('/api/tarif', tarifRoutes);
+
 
 app.use((req, res) => {
     res.status(404).json({ message: 'Route non trouvée' });
