@@ -1,21 +1,40 @@
-import { Container, Title, Tabs, Table, Badge, Button, Group, Text, Loader, Center, Alert, ActionIcon, TextInput, Modal, SimpleGrid, Textarea, NumberInput, Select } from '@mantine/core';
-import { IconUsers, IconHome, IconSearch, IconTrash, IconEdit, IconPlus, IconAlertCircle, IconCheck, IconX } from '@tabler/icons-react';
+import { Container, Title, Tabs, Center, Alert } from '@mantine/core';
+import { IconUsers, IconHome, IconAlertCircle } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDisclosure } from '@mantine/hooks';
 import { useAuth } from '../../Context/AuthContext';
 import axios from 'axios';
 
+// Import des composants
+import {
+    UsersTab,
+    EmployeesTab,
+    HebergementsTab,
+    EditHebergementModal,
+    AddHebergementModal,
+    AddTypeModal,
+    EmployeeModal,
+    AddRoleModal
+} from './components';
+
 export function Dashboard() {
     const { user, token } = useAuth();
     const navigate = useNavigate();
+
+    // États des données
     const [users, setUsers] = useState([]);
     const [usersLoading, setUsersLoading] = useState(true);
     const [usersError, setUsersError] = useState(null);
+    const [employees, setEmployees] = useState([]);
+    const [employeesLoading, setEmployeesLoading] = useState(true);
+    const [employeesError, setEmployeesError] = useState(null);
     const [hebergements, setHebergements] = useState([]);
     const [hebergementsLoading, setHebergementsLoading] = useState(true);
     const [hebergementsError, setHebergementsError] = useState(null);
     const [typesHebergement, setTypesHebergement] = useState([]);
+
+    // États des modals hébergements
     const [editModalOpened, { open: openEditModal, close: closeEditModal }] = useDisclosure(false);
     const [editingHebergement, setEditingHebergement] = useState(null);
     const [editForm, setEditForm] = useState({
@@ -45,16 +64,41 @@ export function Dashboard() {
         description: ''
     });
 
+    // États des modals employés
+    const [editEmployeeModalOpened, { open: openEditEmployeeModal, close: closeEditEmployeeModal }] = useDisclosure(false);
+    const [editingEmployee, setEditingEmployee] = useState(null);
+    const [editEmployeeForm, setEditEmployeeForm] = useState({
+        nom: '',
+        prenom: '',
+        role_interne: '',
+        email: ''
+    });
 
+    const [addEmployeeModalOpened, { open: openAddEmployeeModal, close: closeAddEmployeeModal }] = useDisclosure(false);
+    const [addEmployeeForm, setAddEmployeeForm] = useState({
+        nom: '',
+        prenom: '',
+        role_interne: '',
+        email: ''
+    });
 
+    const [roleModalOpened, { open: openRoleModal, close: closeRoleModal }] = useDisclosure(false);
+    const [newRoleName, setNewRoleName] = useState('');
+    const [rolesInternes, setRolesInternes] = useState([
+        { value: 'Manager', label: 'Manager' },
+        { value: 'Technicien', label: 'Technicien' },
+        { value: 'Receptionniste', label: 'Réceptionniste' },
+        { value: 'Entretien', label: 'Entretien' }
+    ]);
+
+    // Redirection si non-admin
     useEffect(() => {
         if (user && user.type_compte !== 'admin') {
             navigate('/');
         }
     }, [user, navigate]);
 
-
-
+    // Chargement des données
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -70,6 +114,23 @@ export function Dashboard() {
             }
         };
         if (token) fetchUsers();
+    }, [token]);
+
+    useEffect(() => {
+        const fetchEmployees = async () => {
+            try {
+                const response = await axios.get('/api/employee', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setEmployees(response.data);
+            } catch (err) {
+                console.error("Erreur chargement employees:", err);
+                setEmployeesError("Impossible de charger les employés.");
+            } finally {
+                setEmployeesLoading(false);
+            }
+        };
+        if (token) fetchEmployees();
     }, [token]);
 
     useEffect(() => {
@@ -101,6 +162,7 @@ export function Dashboard() {
         fetchTypes();
     }, []);
 
+    // Handlers Utilisateurs
     const handleToggleUserActive = async (userId, isActive) => {
         try {
             const endpoint = isActive ? 'deactivate' : 'activate';
@@ -127,6 +189,7 @@ export function Dashboard() {
         }
     };
 
+    // Handlers Hébergements
     const handleDeleteHebergement = async (hebergementId) => {
         if (!window.confirm("Êtes-vous sûr de vouloir supprimer cet hébergement ?")) return;
         try {
@@ -232,6 +295,88 @@ export function Dashboard() {
         }
     };
 
+    // Handlers Employés
+    const handleOpenEditEmployeeModal = (employee) => {
+        setEditingEmployee(employee);
+        setEditEmployeeForm({
+            nom: employee.nom || '',
+            prenom: employee.prenom || '',
+            role_interne: employee.role_interne || '',
+            email: employee.email || ''
+        });
+        openEditEmployeeModal();
+    };
+
+    const handleSaveEmployee = async () => {
+        try {
+            await axios.put(`/api/employee/${editingEmployee.id_employee}`, editEmployeeForm, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setEmployees(employees.map(e =>
+                e.id_employee === editingEmployee.id_employee ? { ...e, ...editEmployeeForm } : e
+            ));
+            closeEditEmployeeModal();
+        } catch (err) {
+            console.error("Erreur mise à jour employé:", err);
+            alert(err.response?.data?.message || "Erreur lors de la mise à jour");
+        }
+    };
+
+    const handleDeleteEmployee = async (employeeId) => {
+        if (!window.confirm("Êtes-vous sûr de vouloir supprimer cet employé ?")) return;
+        try {
+            await axios.delete(`/api/employee/${employeeId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setEmployees(employees.filter(e => e.id_employee !== employeeId));
+        } catch (err) {
+            console.error("Erreur suppression employé:", err);
+        }
+    };
+
+    const handleCreateEmployee = async () => {
+        try {
+            const response = await axios.post('/api/employee', addEmployeeForm, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const newEmployee = { ...addEmployeeForm, id_employee: response.data.employeeId };
+            setEmployees([...employees, newEmployee]);
+            closeAddEmployeeModal();
+            setAddEmployeeForm({
+                nom: '',
+                prenom: '',
+                role_interne: '',
+                email: ''
+            });
+        } catch (err) {
+            console.error("Erreur création employé:", err);
+            alert(err.response?.data?.message || "Erreur lors de la création");
+        }
+    };
+
+    const handleRoleSelect = (val, formType) => {
+        if (val === 'new') {
+            openRoleModal();
+        } else {
+            if (formType === 'add') {
+                setAddEmployeeForm({ ...addEmployeeForm, role_interne: val });
+            } else {
+                setEditEmployeeForm({ ...editEmployeeForm, role_interne: val });
+            }
+        }
+    };
+
+    const handleCreateRole = () => {
+        if (newRoleName.trim()) {
+            const newRole = { value: newRoleName.trim(), label: newRoleName.trim() };
+            setRolesInternes([...rolesInternes, newRole]);
+            setAddEmployeeForm({ ...addEmployeeForm, role_interne: newRoleName.trim() });
+            closeRoleModal();
+            setNewRoleName('');
+        }
+    };
+
+    // Vérification accès admin
     if (!user || user.type_compte !== 'admin') {
         return (
             <Center h={400}>
@@ -253,277 +398,105 @@ export function Dashboard() {
                     <Tabs.Tab value="users" leftSection={<IconUsers size={16} />}>
                         Utilisateurs ({users.length})
                     </Tabs.Tab>
+                    <Tabs.Tab value="employees" leftSection={<IconUsers size={16} />}>
+                        Employés ({employees.length})
+                    </Tabs.Tab>
                     <Tabs.Tab value="hebergements" leftSection={<IconHome size={16} />}>
                         Hébergements ({hebergements.length})
                     </Tabs.Tab>
                 </Tabs.List>
+
                 <Tabs.Panel value="users">
-                    {usersLoading ? (
-                        <Center h={200}><Loader /></Center>
-                    ) : usersError ? (
-                        <Alert color="red">{usersError}</Alert>
-                    ) : (
-                        <Table striped highlightOnHover>
-                            <Table.Thead>
-                                <Table.Tr>
-                                    <Table.Th>ID</Table.Th>
-                                    <Table.Th>Nom</Table.Th>
-                                    <Table.Th>Email</Table.Th>
-                                    <Table.Th>Type</Table.Th>
-                                    <Table.Th>Statut</Table.Th>
-                                    <Table.Th>Actions</Table.Th>
-                                </Table.Tr>
-                            </Table.Thead>
-                            <Table.Tbody>
-                                {users.map((u) => (
-                                    <Table.Tr key={u.id_user}>
-                                        <Table.Td>{u.id_user}</Table.Td>
-                                        <Table.Td>{u.prenom} {u.nom}</Table.Td>
-                                        <Table.Td>{u.email}</Table.Td>
-                                        <Table.Td>
-                                            <Badge color={u.type_compte === 'admin' ? 'red' : 'blue'}>
-                                                {u.type_compte}
-                                            </Badge>
-                                        </Table.Td>
-                                        <Table.Td>
-                                            <Badge color={u.compte_actif ? 'green' : 'gray'}>
-                                                {u.compte_actif ? 'Actif' : 'Inactif'}
-                                            </Badge>
-                                        </Table.Td>
-                                        <Table.Td>
-                                            <Group gap={5}>
-                                                <ActionIcon
-                                                    variant="subtle"
-                                                    color={u.compte_actif ? 'orange' : 'green'}
-                                                    onClick={() => handleToggleUserActive(u.id_user, u.compte_actif)}
-                                                    title={u.compte_actif ? 'Désactiver' : 'Activer'}
-                                                >
-                                                    {u.compte_actif ? <IconX size={16} /> : <IconCheck size={16} />}
-                                                </ActionIcon>
-                                                <ActionIcon
-                                                    variant="subtle"
-                                                    color="red"
-                                                    onClick={() => handleDeleteUser(u.id_user)}
-                                                    title="Supprimer"
-                                                >
-                                                    <IconTrash size={16} />
-                                                </ActionIcon>
-                                            </Group>
-                                        </Table.Td>
-                                    </Table.Tr>
-                                ))}
-                            </Table.Tbody>
-                        </Table>
-                    )}
+                    <UsersTab
+                        users={users}
+                        loading={usersLoading}
+                        error={usersError}
+                        onToggleActive={handleToggleUserActive}
+                        onDelete={handleDeleteUser}
+                    />
                 </Tabs.Panel>
+
+                <Tabs.Panel value="employees">
+                    <EmployeesTab
+                        employees={employees}
+                        loading={employeesLoading}
+                        error={employeesError}
+                        onAdd={openAddEmployeeModal}
+                        onEdit={handleOpenEditEmployeeModal}
+                        onDelete={handleDeleteEmployee}
+                    />
+                </Tabs.Panel>
+
                 <Tabs.Panel value="hebergements">
-                    {hebergementsLoading ? (
-                        <Center h={200}><Loader /></Center>
-                    ) : hebergementsError ? (
-                        <Alert color="red">{hebergementsError}</Alert>
-                    ) : (
-                        <>
-                            <Button leftSection={<IconPlus size={16} />} mb="md" color="brand" onClick={openAddModal}>
-                                Ajouter un hébergement
-                            </Button>
-                            <Table striped highlightOnHover>
-                                <Table.Thead>
-                                    <Table.Tr>
-                                        <Table.Th>ID</Table.Th>
-                                        <Table.Th>Nom</Table.Th>
-                                        <Table.Th>Type</Table.Th>
-                                        <Table.Th>Capacité</Table.Th>
-                                        <Table.Th>Réservable</Table.Th>
-                                        <Table.Th>Actions</Table.Th>
-                                    </Table.Tr>
-                                </Table.Thead>
-                                <Table.Tbody>
-                                    {hebergements.map((h) => (
-                                        <Table.Tr key={h.id_hebergement}>
-                                            <Table.Td>{h.id_hebergement}</Table.Td>
-                                            <Table.Td>{h.nom_commercial}</Table.Td>
-                                            <Table.Td>{h.type_hebergement}</Table.Td>
-                                            <Table.Td>{h.capacite_max} pers.</Table.Td>
-                                            <Table.Td>
-                                                <Badge color={h.reservable ? 'green' : 'gray'}>
-                                                    {h.reservable ? 'Oui' : 'Non'}
-                                                </Badge>
-                                            </Table.Td>
-                                            <Table.Td>
-                                                <Group gap={5}>
-                                                    <ActionIcon
-                                                        variant="subtle"
-                                                        color="blue"
-                                                        title="Modifier"
-                                                        onClick={() => handleOpenEditModal(h)}
-                                                    >
-                                                        <IconEdit size={16} />
-                                                    </ActionIcon>
-                                                    <ActionIcon
-                                                        variant="subtle"
-                                                        color={h.reservable ? 'orange' : 'green'}
-                                                        onClick={() => handleToggleReservable(h.id_hebergement, h.reservable)}
-                                                        title={h.reservable ? 'Rendre indisponible' : 'Rendre disponible'}
-                                                    >
-                                                        {h.reservable ? <IconX size={16} /> : <IconCheck size={16} />}
-                                                    </ActionIcon>
-                                                    <ActionIcon
-                                                        variant="subtle"
-                                                        color="red"
-                                                        onClick={() => handleDeleteHebergement(h.id_hebergement)}
-                                                        title="Supprimer"
-                                                    >
-                                                        <IconTrash size={16} />
-                                                    </ActionIcon>
-                                                </Group>
-                                            </Table.Td>
-                                        </Table.Tr>
-                                    ))}
-                                </Table.Tbody>
-                            </Table>
-                        </>
-                    )}
+                    <HebergementsTab
+                        hebergements={hebergements}
+                        loading={hebergementsLoading}
+                        error={hebergementsError}
+                        onAdd={openAddModal}
+                        onEdit={handleOpenEditModal}
+                        onToggleReservable={handleToggleReservable}
+                        onDelete={handleDeleteHebergement}
+                    />
                 </Tabs.Panel>
             </Tabs>
 
-            {/* Modal d'édition d'hébergement */}
-            <Modal opened={editModalOpened} onClose={closeEditModal} title="Modifier l'hébergement" size="lg">
-                <TextInput
-                    label="Nom commercial"
-                    value={editForm.nom_commercial}
-                    onChange={(e) => setEditForm({ ...editForm, nom_commercial: e.target.value })}
-                    mb="md"
-                />
-                <Textarea
-                    label="Description"
-                    value={editForm.description}
-                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                    minRows={3}
-                    mb="md"
-                />
-                <SimpleGrid cols={2} mb="md">
-                    <NumberInput
-                        label="Capacité max"
-                        value={editForm.capacite_max}
-                        onChange={(val) => setEditForm({ ...editForm, capacite_max: val })}
-                        min={1}
-                    />
-                    <NumberInput
-                        label="Surface (m²)"
-                        value={editForm.surface_m2}
-                        onChange={(val) => setEditForm({ ...editForm, surface_m2: val })}
-                        min={1}
-                    />
-                </SimpleGrid>
-                <TextInput
-                    label="Localisation"
-                    value={editForm.localisation}
-                    onChange={(e) => setEditForm({ ...editForm, localisation: e.target.value })}
-                    mb="xl"
-                />
-                <Group justify="flex-end">
-                    <Button variant="default" onClick={closeEditModal}>Annuler</Button>
-                    <Button color="brand" onClick={handleSaveHebergement}>Enregistrer</Button>
-                </Group>
-            </Modal>
+            {/* Modals Hébergements */}
+            <EditHebergementModal
+                opened={editModalOpened}
+                onClose={closeEditModal}
+                form={editForm}
+                setForm={setEditForm}
+                onSave={handleSaveHebergement}
+            />
 
-            {/* Modal d'ajout d'hébergement */}
-            <Modal opened={addModalOpened} onClose={closeAddModal} title="Ajouter un hébergement" size="lg">
-                <SimpleGrid cols={2} mb="md">
-                    <Select
-                        label="Type hébergement"
-                        placeholder="Sélectionner un type"
-                        data={[
-                            ...typesHebergement.map(t => ({ value: String(t.id_type), label: t.nom })),
-                            { value: 'new', label: '➕ Ajouter un nouveau type...' }
-                        ]}
-                        value={addForm.type_hebergement ? String(addForm.type_hebergement) : null}
-                        onChange={handleTypeSelect}
-                        required
-                    />
-                    <TextInput
-                        label="Référence interne"
-                        placeholder="CH-001"
-                        value={addForm.reference_interne}
-                        onChange={(e) => setAddForm({ ...addForm, reference_interne: e.target.value })}
-                        required
-                    />
-                </SimpleGrid>
-                <TextInput
-                    label="Nom commercial"
-                    placeholder="Chalet Vue Lac"
-                    value={addForm.nom_commercial}
-                    onChange={(e) => setAddForm({ ...addForm, nom_commercial: e.target.value })}
-                    mb="md"
-                    required
-                />
-                <Textarea
-                    label="Description"
-                    placeholder="Description de l'hébergement..."
-                    value={addForm.description}
-                    onChange={(e) => setAddForm({ ...addForm, description: e.target.value })}
-                    minRows={3}
-                    mb="md"
-                />
-                <SimpleGrid cols={2} mb="md">
-                    <NumberInput
-                        label="Capacité max"
-                        value={addForm.capacite_max}
-                        onChange={(val) => setAddForm({ ...addForm, capacite_max: val })}
-                        min={1}
-                        required
-                    />
-                    <NumberInput
-                        label="Surface (m²)"
-                        value={addForm.surface_m2}
-                        onChange={(val) => setAddForm({ ...addForm, surface_m2: val })}
-                        min={1}
-                    />
-                </SimpleGrid>
-                <TextInput
-                    label="Localisation"
-                    placeholder="Zone A, près du lac..."
-                    value={addForm.localisation}
-                    onChange={(e) => setAddForm({ ...addForm, localisation: e.target.value })}
-                    mb="xl"
-                />
-                <Group justify="flex-end">
-                    <Button variant="default" onClick={closeAddModal}>Annuler</Button>
-                    <Button color="brand" onClick={handleCreateHebergement}>Créer</Button>
-                </Group>
-            </Modal>
+            <AddHebergementModal
+                opened={addModalOpened}
+                onClose={closeAddModal}
+                form={addForm}
+                setForm={setAddForm}
+                typesHebergement={typesHebergement}
+                onTypeSelect={handleTypeSelect}
+                onCreate={handleCreateHebergement}
+            />
 
-            {/* Modal d'ajout de type */}
-            <Modal opened={typeModalOpened} onClose={closeTypeModal} title="Nouveau type d'hébergement" size="md">
-                <TextInput
-                    label="Nom du type"
-                    placeholder="Mobil-home, Tente, Caravane..."
-                    value={newTypeForm.nom}
-                    onChange={(e) => setNewTypeForm({ ...newTypeForm, nom: e.target.value })}
-                    mb="md"
-                    required
-                />
-                <TextInput
-                    label="Code"
-                    placeholder="MH, TE, CA..."
-                    value={newTypeForm.code}
-                    onChange={(e) => setNewTypeForm({ ...newTypeForm, code: e.target.value.toUpperCase() })}
-                    mb="md"
-                    required
-                />
-                <Textarea
-                    label="Description"
-                    placeholder="Description du type d'hébergement..."
-                    value={newTypeForm.description}
-                    onChange={(e) => setNewTypeForm({ ...newTypeForm, description: e.target.value })}
-                    minRows={2}
-                    mb="xl"
-                />
-                <Group justify="flex-end">
-                    <Button variant="default" onClick={closeTypeModal}>Annuler</Button>
-                    <Button color="brand" onClick={handleCreateType}>Créer le type</Button>
-                </Group>
-            </Modal>
+            <AddTypeModal
+                opened={typeModalOpened}
+                onClose={closeTypeModal}
+                form={newTypeForm}
+                setForm={setNewTypeForm}
+                onCreate={handleCreateType}
+            />
+
+            {/* Modals Employés */}
+            <EmployeeModal
+                opened={editEmployeeModalOpened}
+                onClose={closeEditEmployeeModal}
+                form={editEmployeeForm}
+                setForm={setEditEmployeeForm}
+                rolesInternes={rolesInternes}
+                onRoleSelect={handleRoleSelect}
+                onSubmit={handleSaveEmployee}
+                isEditing={true}
+            />
+
+            <EmployeeModal
+                opened={addEmployeeModalOpened}
+                onClose={closeAddEmployeeModal}
+                form={addEmployeeForm}
+                setForm={setAddEmployeeForm}
+                rolesInternes={rolesInternes}
+                onRoleSelect={handleRoleSelect}
+                onSubmit={handleCreateEmployee}
+                isEditing={false}
+            />
+
+            <AddRoleModal
+                opened={roleModalOpened}
+                onClose={closeRoleModal}
+                roleName={newRoleName}
+                setRoleName={setNewRoleName}
+                onCreate={handleCreateRole}
+            />
         </Container>
     );
 }
