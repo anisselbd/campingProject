@@ -15,6 +15,7 @@ import emailLogsRoutes from "./routes/emailLogsRoutes.js";
 import roleAffectationsRoutes from "./routes/roleAffectationsRoutes.js";
 import equipmentsRoutes from "./routes/equipmentsRoutes.js";
 import hebergementEquipementsRoutes from "./routes/hebergementEquipementsRoutes.js";
+import employeeShiftsRoutes from "./routes/employeeShiftsRoutes.js";
 
 // Charger les variables d'environnement
 dotenv.config();
@@ -44,6 +45,7 @@ app.use('/api/hebergements', hebergementsRoutes);
 app.use('/api/types-hebergement', typesHebergementRoutes);
 app.use('/api/booking', bookingRoutes);
 app.use('/api/option', optionRoutes);
+app.use("/api/shift", employeeShiftsRoutes);
 
 
 
