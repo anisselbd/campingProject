@@ -7,6 +7,11 @@ import hebergementsRoutes from './routes/hebergementsRoutes.js';
 import typesHebergementRoutes from './routes/typesHebergementRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import optionRoutes from './routes/optionRoutes.js';
+import couponRoutes from './routes/couponRoutes.js';
+import invoiceRoutes from './routes/invoiceRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+
+
 
 import rolesRoutes from "./routes/rolesRoutes.js";
 import ticketsRoutes from "./routes/ticketsRoutes.js";
@@ -45,6 +50,9 @@ app.use('/api/hebergements', hebergementsRoutes);
 app.use('/api/types-hebergement', typesHebergementRoutes);
 app.use('/api/booking', bookingRoutes);
 app.use('/api/option', optionRoutes);
+app.use('/api/coupons', couponRoutes);
+app.use('/api/invoice', invoiceRoutes)
+app.use('/api/payment', paymentRoutes);
 app.use("/api/shift", employeeShiftsRoutes);
 
 
