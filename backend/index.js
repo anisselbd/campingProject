@@ -11,6 +11,13 @@ import couponRoutes from './routes/couponRoutes.js';
 
 
 
+import rolesRoutes from "./routes/rolesRoutes.js";
+import ticketsRoutes from "./routes/ticketsRoutes.js";
+import employeeRoutes from "./routes/employeeRoutes.js";
+import emailLogsRoutes from "./routes/emailLogsRoutes.js";
+import roleAffectationsRoutes from "./routes/roleAffectationsRoutes.js";
+import equipmentsRoutes from "./routes/equipmentsRoutes.js";
+import hebergementEquipementsRoutes from "./routes/hebergementEquipementsRoutes.js";
 
 // Charger les variables d'environnement
 dotenv.config();
@@ -28,7 +35,7 @@ testConnection();
 
 // Route de base
 app.get('/', (req, res) => {
-    res.json({ 
+    res.json({
         message: 'Bienvenue sur l\'API du Camping',
         status: 'online'
     });
@@ -45,6 +52,13 @@ app.use('/api/coupons', couponRoutes);
 
 
 // Gestion des erreurs
+app.use("/api/roles", rolesRoutes);
+app.use("/api/tickets", ticketsRoutes);
+app.use('/api/employee', employeeRoutes);
+app.use("/api/log", emailLogsRoutes);
+app.use("/api/affectation", roleAffectationsRoutes);
+app.use("/api/equipment", equipmentsRoutes);
+app.use("/api/hebergementEquipement", hebergementEquipementsRoutes);
 
 app.use((req, res) => {
     res.status(404).json({ message: 'Route non trouvée' });
