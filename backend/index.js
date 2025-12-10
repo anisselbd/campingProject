@@ -7,6 +7,9 @@ import hebergementsRoutes from './routes/hebergementsRoutes.js';
 import typesHebergementRoutes from './routes/typesHebergementRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import optionRoutes from './routes/optionRoutes.js';
+import couponRoutes from './routes/couponRoutes.js';
+
+
 
 
 // Charger les variables d'environnement
@@ -37,6 +40,7 @@ app.use('/api/hebergements', hebergementsRoutes);
 app.use('/api/types-hebergement', typesHebergementRoutes);
 app.use('/api/booking', bookingRoutes);
 app.use('/api/option', optionRoutes);
+app.use('/api/coupons', couponRoutes);
 
 
 

@@ -3,6 +3,9 @@ import optionController from '../controllers/optionController.js';
 
 import { authMiddleware, adminMiddleware } from '../middleware/authMiddleware.js'; 
 
+//app.use('/api/options', optionRoutes);
+
+
 const router = express.Router();
 
 // 1. READ ALL (GET /api/option)
