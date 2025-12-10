@@ -8,6 +8,8 @@ import typesHebergementRoutes from './routes/typesHebergementRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import optionRoutes from './routes/optionRoutes.js';
 import couponRoutes from './routes/couponRoutes.js';
+import invoiceRoutes from './routes/invoiceRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 
 
 
@@ -48,6 +50,8 @@ app.use('/api/types-hebergement', typesHebergementRoutes);
 app.use('/api/booking', bookingRoutes);
 app.use('/api/option', optionRoutes);
 app.use('/api/coupons', couponRoutes);
+app.use('/api/invoice', invoiceRoutes)
+app.use('/api/payment', paymentRoutes);
 
 
 
