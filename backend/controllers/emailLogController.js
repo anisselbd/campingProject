@@ -14,7 +14,6 @@ const getAllEmailLogs = async (req, res) => {
 const getEmailLogById = async (req, res) => {
     try {
         const id_email = req.params.id_email;
-        console.log("ID reçu dans le contrôleur :", id_email);
         const log = await emailLogModel.getEmailLogById(id_email);
         if (!log) {
             console.log("Aucun log trouvé pour l'ID :", id_email);
