@@ -1,15 +1,20 @@
 import { Container, Title, Text, Button, Image, SimpleGrid, Group, Badge, Paper, List, ThemeIcon, Loader, Center, Alert, Box } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import { IconUsers, IconRuler, IconMapPin, IconCheck, IconArrowLeft, IconAlertCircle } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../Context/AuthContext';
+import { BookingModal } from '../Components/BookingModal';
 
 export function HebergementsDetails() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user, token } = useAuth();
     const [hebergement, setHebergement] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -28,6 +33,14 @@ export function HebergementsDetails() {
             fetchDetails();
         }
     }, [id]);
+
+    const handleReserverClick = () => {
+        if (!user) {
+            navigate('/login');
+        } else {
+            openModal();
+        }
+    };
 
     if (loading) {
         return (
@@ -83,7 +96,7 @@ export function HebergementsDetails() {
                         <Badge size="lg" color="brand" variant="light">{hebergement.type_hebergement}</Badge>
                     </Group>
 
-                    <Text size="xl" fw={700} c="brand" mt="sm">{hebergement.prix_base_nuitee}€ <Text span size="sm" c="dimmed" fw={400}>/ nuit</Text></Text>
+                    <Text size="xl" fw={700} c="brand" mt="sm">{hebergement.prix_base_nuitee || 50}€ <Text span size="sm" c="dimmed" fw={400}>/ nuit</Text></Text>
                     <Text mt="md" size="lg" c="dimmed">
                         {hebergement.description}
                     </Text>
@@ -119,11 +132,20 @@ export function HebergementsDetails() {
                             <List.Item>Cuisine équipée</List.Item>
                         </List>
                     </Paper>
-                    <Button fullWidth size="lg" color="brand" mt="xl">
+                    <Button fullWidth size="lg" color="brand" mt="xl" onClick={handleReserverClick}>
                         Réserver maintenant
                     </Button>
                 </Box>
             </SimpleGrid>
+
+            <BookingModal
+                opened={modalOpened}
+                onClose={closeModal}
+                hebergement={hebergement}
+                user={user}
+                token={token}
+            />
         </Container>
     );
 }
+
