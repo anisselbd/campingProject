@@ -4,6 +4,13 @@ import tarifController from "../controllers/tarifController.js";
 
 const router = express.Router();
 
+// Route publique (sans auth) pour afficher les tarifs aux visiteurs
+router.get('/public', tarifController.getPublicTarifs);
+
+// Route publique pour calculer le prix d'une réservation
+router.post('/calculate', tarifController.calculatePrice);
+
+// Routes protégées (admin)
 router.get('/', authMiddleware, adminMiddleware, tarifController.getAllTarifs);
 router.get('/:id_tarif', authMiddleware, adminMiddleware, tarifController.getAllTarifsById);
 

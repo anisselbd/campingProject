@@ -1,33 +1,65 @@
-import { Modal, Text, Button, Group, NumberInput, Stack, Alert, Divider, Paper, Loader } from '@mantine/core';
+import { Modal, Text, Button, Group, NumberInput, Stack, Alert, Divider, Paper, Loader, Badge } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
-import { IconCalendar, IconUsers, IconAlertCircle, IconCheck, IconCurrencyEuro } from '@tabler/icons-react';
-import { useState, useMemo } from 'react';
+import { IconCalendar, IconUsers, IconAlertCircle, IconCheck, IconCurrencyEuro, IconSun } from '@tabler/icons-react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 export function BookingModal({ opened, onClose, hebergement, user, token }) {
-    // Prix temporaire en attendant le MVC Tarif (à changer quand le MVC sera en place)
-    const PRIX_DEFAUT = 50;
     const [dateArrivee, setDateArrivee] = useState(null);
     const [dateDepart, setDateDepart] = useState(null);
     const [adultes, setAdultes] = useState(2);
     const [enfants, setEnfants] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [loadingPrice, setLoadingPrice] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
 
-    // Calcul du nombre de nuits et du montant
-    const prixNuit = hebergement?.prix_base_nuitee || PRIX_DEFAUT; // à changer quand le MVC sera en place
+    // Données de tarification dynamique
+    const [pricing, setPricing] = useState(null);
 
-    const { nbNuits, montantTotal } = useMemo(() => {
-        if (!dateArrivee || !dateDepart) return { nbNuits: 0, montantTotal: 0 };
+    // Calcul du nombre de nuits
+    const calculateNights = useCallback(() => {
+        if (!dateArrivee || !dateDepart) return 0;
         const diffTime = new Date(dateDepart) - new Date(dateArrivee);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        const nuits = diffDays > 0 ? diffDays : 0;
-        return {
-            nbNuits: nuits,
-            montantTotal: nuits * prixNuit
+        return diffDays > 0 ? diffDays : 0;
+    }, [dateArrivee, dateDepart]);
+
+    const nbNuits = calculateNights();
+
+    // Appel API pour calculer le prix
+    useEffect(() => {
+        const fetchPrice = async () => {
+            if (!dateArrivee || !dateDepart || nbNuits === 0 || !hebergement?.type_hebergement_id) {
+                setPricing(null);
+                return;
+            }
+
+            setLoadingPrice(true);
+            try {
+                const formatDate = (date) => {
+                    const d = new Date(date);
+                    return d.toISOString().split('T')[0];
+                };
+
+                const response = await axios.post('/api/tarif/calculate', {
+                    type_hebergement_id: hebergement.type_hebergement_id,
+                    date_arrivee: formatDate(dateArrivee),
+                    nb_personnes: adultes + enfants,
+                    nb_nuits: nbNuits
+                });
+
+                setPricing(response.data);
+            } catch (err) {
+                console.error("Erreur calcul prix:", err);
+                setPricing(null);
+            } finally {
+                setLoadingPrice(false);
+            }
         };
-    }, [dateArrivee, dateDepart, prixNuit]);
+
+        fetchPrice();
+    }, [dateArrivee, dateDepart, adultes, enfants, nbNuits, hebergement?.type_hebergement_id]);
 
     const resetForm = () => {
         setDateArrivee(null);
@@ -36,6 +68,7 @@ export function BookingModal({ opened, onClose, hebergement, user, token }) {
         setEnfants(0);
         setError(null);
         setSuccess(false);
+        setPricing(null);
     };
 
     const handleClose = () => {
@@ -61,16 +94,22 @@ export function BookingModal({ opened, onClose, hebergement, user, token }) {
             setError(`La capacité maximale est de ${hebergement.capacite_max} personnes.`);
             return;
         }
+        if (pricing && !pricing.min_nuits_ok) {
+            setError(`Minimum ${pricing.min_nuits} nuits requis pour cette saison.`);
+            return;
+        }
 
         setLoading(true);
         setError(null);
 
         try {
-            // Convertir les dates en format ISO pour esquive l'erreur de null
             const formatDate = (date) => {
                 const d = new Date(date);
                 return d.toISOString().split('T')[0];
             };
+
+            const montantTotal = pricing?.prix_total || 0;
+            const prixNuit = pricing?.prix_par_nuit || 0;
 
             const bookingData = {
                 client_id: user.id_user,
@@ -116,6 +155,14 @@ export function BookingModal({ opened, onClose, hebergement, user, token }) {
     };
 
     if (!hebergement) return null;
+
+    // Couleurs des badges par saison
+    const saisonColors = {
+        'BS': 'blue',
+        'MS': 'green',
+        'HS': 'orange',
+        'THS': 'red'
+    };
 
     return (
         <Modal
@@ -192,22 +239,66 @@ export function BookingModal({ opened, onClose, hebergement, user, token }) {
                     <Divider my="sm" />
 
                     <Paper withBorder p="md" radius="md" bg="gray.0">
-                        <Group justify="space-between">
-                            <Text>Prix par nuit</Text>
-                            <Text fw={500}>{prixNuit} €</Text>
-                        </Group>
-                        <Group justify="space-between" mt="xs">
-                            <Text>Nombre de nuits</Text>
-                            <Text fw={500}>{nbNuits}</Text>
-                        </Group>
-                        <Divider my="sm" />
-                        <Group justify="space-between">
-                            <Text fw={700} size="lg">Total</Text>
-                            <Group gap={5}>
-                                <IconCurrencyEuro size={20} />
-                                <Text fw={700} size="lg" c="brand">{montantTotal} €</Text>
+                        {loadingPrice ? (
+                            <Group justify="center" py="md">
+                                <Loader size="sm" />
+                                <Text size="sm" c="dimmed">Calcul du prix...</Text>
                             </Group>
-                        </Group>
+                        ) : pricing ? (
+                            <>
+                                <Group justify="space-between" mb="xs">
+                                    <Group gap={5}>
+                                        <IconSun size={16} />
+                                        <Text size="sm">Saison</Text>
+                                    </Group>
+                                    <Badge
+                                        color={saisonColors[pricing.saison_code] || 'gray'}
+                                        variant="light"
+                                    >
+                                        {pricing.saison}
+                                    </Badge>
+                                </Group>
+                                <Group justify="space-between">
+                                    <Text>Prix par nuit</Text>
+                                    <Text fw={500}>{pricing.prix_par_nuit.toFixed(2)} €</Text>
+                                </Group>
+                                <Group justify="space-between" mt="xs">
+                                    <Text>Nombre de nuits</Text>
+                                    <Text fw={500}>{nbNuits}</Text>
+                                </Group>
+                                <Group justify="space-between" mt="xs">
+                                    <Text size="sm" c="dimmed">
+                                        ({pricing.personnes_incluses} pers. incluses)
+                                    </Text>
+                                    <Text size="sm" c="dimmed">{pricing.prix_base.toFixed(2)} €</Text>
+                                </Group>
+                                {pricing.personnes_extra > 0 && (
+                                    <Group justify="space-between" mt="xs">
+                                        <Text size="sm" c="dimmed">
+                                            Supplément ({pricing.personnes_extra} pers. × {pricing.supplement_personne.toFixed(2)}€)
+                                        </Text>
+                                        <Text size="sm" c="dimmed">+{pricing.supplement_total.toFixed(2)} €</Text>
+                                    </Group>
+                                )}
+                                {!pricing.min_nuits_ok && (
+                                    <Alert color="orange" mt="xs" p="xs">
+                                        <Text size="xs">⚠️ Minimum {pricing.min_nuits} nuits requis</Text>
+                                    </Alert>
+                                )}
+                                <Divider my="sm" />
+                                <Group justify="space-between">
+                                    <Text fw={700} size="lg">Total</Text>
+                                    <Group gap={5}>
+                                        <IconCurrencyEuro size={20} />
+                                        <Text fw={700} size="lg" c="brand">{pricing.prix_total.toFixed(2)} €</Text>
+                                    </Group>
+                                </Group>
+                            </>
+                        ) : (
+                            <Text ta="center" c="dimmed" size="sm">
+                                Sélectionnez les dates pour voir le prix
+                            </Text>
+                        )}
                     </Paper>
 
                     <Text size="xs" c="dimmed">
@@ -219,7 +310,7 @@ export function BookingModal({ opened, onClose, hebergement, user, token }) {
                         size="lg"
                         color="brand"
                         onClick={handleSubmit}
-                        disabled={loading || nbNuits === 0}
+                        disabled={loading || nbNuits === 0 || !pricing || !pricing.min_nuits_ok}
                     >
                         {loading ? <Loader size="sm" color="white" /> : 'Confirmer la réservation'}
                     </Button>

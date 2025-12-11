@@ -8,6 +8,7 @@ import { Hebergements } from './Pages/Hebergements';
 import { Contact } from './Pages/Contact';
 import { Galerie } from './Pages/Galerie';
 import { HebergementsDetails } from './Pages/HebergementsDetails';
+import { Tarifs } from './Pages/Tarifs';
 import { Dashboard } from './Pages/adminPages/Dashboard';
 
 function App() {
@@ -19,7 +20,7 @@ function App() {
                 <Route path="/hebergements" element={<Hebergements />} />
                 <Route path="/hebergements/:id" element={<HebergementsDetails />} />
                 <Route path="/galerie" element={<Galerie />} />
-                <Route path="/tarifs" element={<div>Page Tarifs</div>} />
+                <Route path="/tarifs" element={<Tarifs />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/login" element={<Login />} />

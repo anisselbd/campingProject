@@ -1,5 +1,5 @@
 import { Container, Title, Tabs, Center, Alert } from '@mantine/core';
-import { IconUsers, IconHome, IconAlertCircle } from '@tabler/icons-react';
+import { IconUsers, IconHome, IconAlertCircle, IconSun, IconCurrencyEuro, IconTool } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDisclosure } from '@mantine/hooks';
@@ -15,7 +15,10 @@ import {
     AddHebergementModal,
     AddTypeModal,
     EmployeeModal,
-    AddRoleModal
+    AddRoleModal,
+    SeasonsTab,
+    TarifsTab,
+    EquipmentsTab
 } from './components';
 
 export function Dashboard() {
@@ -33,6 +36,14 @@ export function Dashboard() {
     const [hebergementsLoading, setHebergementsLoading] = useState(true);
     const [hebergementsError, setHebergementsError] = useState(null);
     const [typesHebergement, setTypesHebergement] = useState([]);
+
+    // États pour Saisons et Tarifs
+    const [seasons, setSeasons] = useState([]);
+    const [seasonsLoading, setSeasonsLoading] = useState(true);
+    const [seasonsError, setSeasonsError] = useState(null);
+    const [tarifs, setTarifs] = useState([]);
+    const [tarifsLoading, setTarifsLoading] = useState(true);
+    const [tarifsError, setTarifsError] = useState(null);
 
     // États des modals hébergements
     const [editModalOpened, { open: openEditModal, close: closeEditModal }] = useDisclosure(false);
@@ -161,6 +172,46 @@ export function Dashboard() {
         };
         fetchTypes();
     }, []);
+
+    // Fetch Seasons
+    const fetchSeasons = async () => {
+        setSeasonsLoading(true);
+        try {
+            const response = await axios.get('/api/season', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setSeasons(response.data);
+        } catch (err) {
+            console.error("Erreur chargement seasons:", err);
+            setSeasonsError("Impossible de charger les saisons.");
+        } finally {
+            setSeasonsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (token) fetchSeasons();
+    }, [token]);
+
+    // Fetch Tarifs
+    const fetchTarifs = async () => {
+        setTarifsLoading(true);
+        try {
+            const response = await axios.get('/api/tarif', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setTarifs(response.data);
+        } catch (err) {
+            console.error("Erreur chargement tarifs:", err);
+            setTarifsError("Impossible de charger les tarifs.");
+        } finally {
+            setTarifsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (token) fetchTarifs();
+    }, [token]);
 
     // Handlers Utilisateurs
     const handleToggleUserActive = async (userId, isActive) => {
@@ -404,6 +455,15 @@ export function Dashboard() {
                     <Tabs.Tab value="hebergements" leftSection={<IconHome size={16} />}>
                         Hébergements ({hebergements.length})
                     </Tabs.Tab>
+                    <Tabs.Tab value="seasons" leftSection={<IconSun size={16} />}>
+                        Saisons ({seasons.length})
+                    </Tabs.Tab>
+                    <Tabs.Tab value="tarifs" leftSection={<IconCurrencyEuro size={16} />}>
+                        Tarifs ({tarifs.length})
+                    </Tabs.Tab>
+                    <Tabs.Tab value="equipments" leftSection={<IconTool size={16} />}>
+                        Équipements
+                    </Tabs.Tab>
                 </Tabs.List>
 
                 <Tabs.Panel value="users">
@@ -437,6 +497,32 @@ export function Dashboard() {
                         onToggleReservable={handleToggleReservable}
                         onDelete={handleDeleteHebergement}
                     />
+                </Tabs.Panel>
+
+                <Tabs.Panel value="seasons">
+                    <SeasonsTab
+                        seasons={seasons}
+                        loading={seasonsLoading}
+                        error={seasonsError}
+                        token={token}
+                        onRefresh={fetchSeasons}
+                    />
+                </Tabs.Panel>
+
+                <Tabs.Panel value="tarifs">
+                    <TarifsTab
+                        tarifs={tarifs}
+                        seasons={seasons}
+                        typesHebergement={typesHebergement}
+                        loading={tarifsLoading}
+                        error={tarifsError}
+                        token={token}
+                        onRefresh={fetchTarifs}
+                    />
+                </Tabs.Panel>
+
+                <Tabs.Panel value="equipments">
+                    <EquipmentsTab token={token} />
                 </Tabs.Panel>
             </Tabs>
 

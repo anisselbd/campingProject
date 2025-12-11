@@ -7,3 +7,6 @@ export { AddHebergementModal } from './AddHebergementModal';
 export { AddTypeModal } from './AddTypeModal';
 export { EmployeeModal } from './EmployeeModal';
 export { AddRoleModal } from './AddRoleModal';
+export { SeasonsTab } from './SeasonsTab';
+export { TarifsTab } from './TarifsTab';
+export { EquipmentsTab } from './EquipmentsTab';
