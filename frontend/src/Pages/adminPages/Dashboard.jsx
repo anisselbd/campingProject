@@ -1,5 +1,5 @@
 import { Container, Title, Tabs, Center, Alert } from '@mantine/core';
-import { IconUsers, IconHome, IconAlertCircle, IconSun, IconCurrencyEuro, IconTool } from '@tabler/icons-react';
+import { IconUsers, IconHome, IconAlertCircle, IconSun, IconCurrencyEuro, IconTool, IconCalendarEvent } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDisclosure } from '@mantine/hooks';
@@ -18,7 +18,8 @@ import {
     AddRoleModal,
     SeasonsTab,
     TarifsTab,
-    EquipmentsTab
+    EquipmentsTab,
+    ReservationsTab
 } from './components';
 
 export function Dashboard() {
@@ -464,6 +465,9 @@ export function Dashboard() {
                     <Tabs.Tab value="equipments" leftSection={<IconTool size={16} />}>
                         Équipements
                     </Tabs.Tab>
+                    <Tabs.Tab value="reservations" leftSection={<IconCalendarEvent size={16} />}>
+                        Réservations
+                    </Tabs.Tab>
                 </Tabs.List>
 
                 <Tabs.Panel value="users">
@@ -523,6 +527,10 @@ export function Dashboard() {
 
                 <Tabs.Panel value="equipments">
                     <EquipmentsTab token={token} />
+                </Tabs.Panel>
+
+                <Tabs.Panel value="reservations">
+                    <ReservationsTab token={token} />
                 </Tabs.Panel>
             </Tabs>
 

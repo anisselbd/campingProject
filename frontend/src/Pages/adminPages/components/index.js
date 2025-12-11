@@ -10,3 +10,4 @@ export { AddRoleModal } from './AddRoleModal';
 export { SeasonsTab } from './SeasonsTab';
 export { TarifsTab } from './TarifsTab';
 export { EquipmentsTab } from './EquipmentsTab';
+export { ReservationsTab } from './ReservationsTab';
