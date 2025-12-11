@@ -41,7 +41,7 @@ export function Tarifs() {
         );
     }
 
-    // Grouper les tarifs par type d'hébergement
+    // group des tarifs par type d'hébergement
     const tarifsByType = tarifs.reduce((acc, tarif) => {
         const type = tarif.type_hebergement;
         if (!acc[type]) {
@@ -51,10 +51,10 @@ export function Tarifs() {
         return acc;
     }, {});
 
-    // Ordre des saisons
+    // ordre des saisons
     const saisonOrder = ['Basse saison', 'Moyenne saison', 'Haute saison', 'Très haute saison'];
 
-    // Couleurs des badges par saison
+    // couleurs des badges par saison
     const saisonColors = {
         'Basse saison': 'blue',
         'Moyenne saison': 'green',

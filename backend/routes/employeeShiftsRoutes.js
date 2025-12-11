@@ -6,7 +6,6 @@ const router = express.Router();
 
 router.get("/", authMiddleware, adminMiddleware, employeeShiftController.getAllEmployeeShift);
 router.get("/:id_shift", authMiddleware, adminMiddleware, employeeShiftController.getEmployeeShiftById);
-
 router.post("/", authMiddleware, adminMiddleware, employeeShiftController.createEmployeeShift);
 router.put("/:id_shift", authMiddleware, adminMiddleware, employeeShiftController.updateEmployeeShift);
 router.delete("/:id_shift", authMiddleware, adminMiddleware, employeeShiftController.deleteEmployeeShift);

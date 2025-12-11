@@ -11,7 +11,6 @@ const getAllEquipsByHebergement = async (req, res) => {
     }
 }
 
-// Route publique - sans authentification
 const getPublicEquipsByHebergement = async (req, res) => {
     try {
         const { hebergement_id } = req.params;

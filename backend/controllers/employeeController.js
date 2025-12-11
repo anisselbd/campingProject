@@ -61,11 +61,6 @@ const updateEmployee = async (req, res) => {
     try {
         const id_employee = req.params.id_employee;
         const { nom, prenom, role_interne, email } = req.body;
-        // if (!nom || !prenom || !role_interne || !email) {
-        //     res.status(400);
-        //     res.json({ message: "Le nom et le prénom sont requis" });
-
-        // }
         const updateEmployee = await employeeModel.updateEmployee(id_employee, nom, prenom, role_interne, email);
         if (updateEmployee === 0) {
             res.status(404);

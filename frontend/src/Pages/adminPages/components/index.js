@@ -1,4 +1,4 @@
-// Export all dashboard components
+// Export des components du dash admin 
 export { UsersTab } from './UsersTab';
 export { EmployeesTab } from './EmployeesTab';
 export { HebergementsTab } from './HebergementsTab';

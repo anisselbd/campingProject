@@ -29,8 +29,6 @@ const getSeasonById = async (req, res) => {
 const createSeason = async (req, res) => {
     try {
         const { nom, code, date_debut, date_fin, description } = req.body;
-
-        // Validation des champs
         if (!nom || !code || !date_debut || !date_fin || !description) {
             return res.status(400).json({ message: "nom, code, date_debut, date_fin et description sont requis" });
         }

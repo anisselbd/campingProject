@@ -14,12 +14,11 @@ export function EquipmentsTab({ token }) {
     const [addForm, setAddForm] = useState({ nom: '', code: '', description: '' });
     const [actionLoading, setActionLoading] = useState(false);
 
-    // Pour les associations
+    // const pour les tables d'associations
     const [selectedHebergement, setSelectedHebergement] = useState(null);
     const [hebergementEquipments, setHebergementEquipments] = useState([]);
     const [selectedEquipments, setSelectedEquipments] = useState([]);
 
-    // Fetch equipments
     const fetchEquipments = async () => {
         setLoading(true);
         try {
@@ -35,7 +34,6 @@ export function EquipmentsTab({ token }) {
         }
     };
 
-    // Fetch hebergements for associations
     const fetchHebergements = async () => {
         try {
             const response = await axios.get('/api/hebergements', {
@@ -54,7 +52,6 @@ export function EquipmentsTab({ token }) {
         }
     }, [token]);
 
-    // Fetch equipments for selected hebergement
     useEffect(() => {
         const fetchHebergementEquipments = async () => {
             if (!selectedHebergement) {
@@ -76,7 +73,6 @@ export function EquipmentsTab({ token }) {
         fetchHebergementEquipments();
     }, [selectedHebergement, token]);
 
-    // CRUD handlers
     const handleEdit = (equipment) => {
         setEditingId(equipment.id_equipment);
         setEditForm({
@@ -133,7 +129,6 @@ export function EquipmentsTab({ token }) {
         }
     };
 
-    // Association handler
     const handleAssociationChange = async (newSelected) => {
         if (!selectedHebergement) return;
 
@@ -142,7 +137,6 @@ export function EquipmentsTab({ token }) {
         const toRemove = currentIds.filter(id => !newSelected.includes(id));
 
         try {
-            // Add new associations
             for (const equipId of toAdd) {
                 await axios.post('/api/hebergementEquipement', {
                     hebergement_id: parseInt(selectedHebergement),
@@ -151,8 +145,6 @@ export function EquipmentsTab({ token }) {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             }
-
-            // Remove old associations
             for (const equipId of toRemove) {
                 await axios.delete(`/api/hebergementEquipement/${selectedHebergement}/${equipId}`, {
                     headers: { Authorization: `Bearer ${token}` }
@@ -160,7 +152,6 @@ export function EquipmentsTab({ token }) {
             }
 
             setSelectedEquipments(newSelected);
-            // Refresh
             const response = await axios.get(`/api/hebergementEquipement/${selectedHebergement}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -190,7 +181,6 @@ export function EquipmentsTab({ token }) {
 
     return (
         <Stack gap="xl">
-            {/* Section 1: Liste des équipements */}
             <Stack>
                 <Group justify="space-between">
                     <Text fw={500}>Liste des équipements</Text>
@@ -269,7 +259,6 @@ export function EquipmentsTab({ token }) {
                 </Paper>
             </Stack>
 
-            {/* Section 2: Associations hébergement ↔ équipements */}
             <Paper withBorder p="md">
                 <Group gap="xs" mb="md">
                     <IconLink size={20} />

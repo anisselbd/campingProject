@@ -98,7 +98,6 @@ const deleteTarif = async (req, res) => {
     }
 }
 
-// Calcule le prix d'une réservation selon les paramètres
 const calculatePrice = async (req, res) => {
     console.log("📊 calculatePrice appelé avec:", req.body);
     try {
@@ -109,23 +108,16 @@ const calculatePrice = async (req, res) => {
                 message: "Paramètres requis: type_hebergement_id, date_arrivee, nb_personnes, nb_nuits"
             });
         }
-
-        // Récupérer le tarif applicable
         const tarif = await tarifModel.getTarifByTypeAndDate(type_hebergement_id, date_arrivee);
-
         if (!tarif) {
             return res.status(404).json({
                 message: "Aucun tarif trouvé pour ce type d'hébergement et cette période"
             });
         }
-
-        // Calcul du prix
         const personnes_extra = Math.max(0, nb_personnes - tarif.personnes_incluses);
         const prix_base = parseFloat(tarif.prix_par_nuit) * nb_nuits;
         const supplement_total = parseFloat(tarif.supplement_personne) * personnes_extra * nb_nuits;
         const prix_total = prix_base + supplement_total;
-
-        // Vérification min_nuits
         const min_nuits_ok = nb_nuits >= tarif.min_nuits;
 
         res.status(200).json({
