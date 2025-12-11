@@ -1,15 +1,13 @@
 import bdd from "../config/bdd.js";
 
 const fetchAllSeasons = async () => {
-    const sql = `SELECT id_saison, nom, code, date_debut, date_fin, description FROM season
-    INNER JOIN tarif ON tarif.saison_id = season.id_saison;`; 
+    const sql = `SELECT id_saison, nom, code, date_debut, date_fin, description FROM season;`;
     const [rows] = await bdd.query(sql);
     return rows;
 }
 
 const fetchAllSeasonById = async (id_saison) => {
-    const sql = `SELECT id_saison, nom, code, date_debut, date_fin, description FROM season WHERE id_saison = ?
-    INNER JOIN tarif ON tarif.saison_id = season.id_saison;`;
+    const sql = `SELECT id_saison, nom, code, date_debut, date_fin, description FROM season WHERE id_saison = ?;`;
     const [rows] = await bdd.query(sql, [id_saison]);
     return rows[0];
 }

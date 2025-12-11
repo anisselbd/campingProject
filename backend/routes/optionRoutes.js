@@ -1,9 +1,6 @@
 import express from 'express';
 import optionController from '../controllers/optionController.js';
-
 import { authMiddleware, adminMiddleware } from '../middleware/authMiddleware.js'; 
-
-//app.use('/api/options', optionRoutes);
 
 
 const router = express.Router();

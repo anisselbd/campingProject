@@ -29,35 +29,24 @@ const createRole = async (req, res) => {
 
     try {
         const { id_role, code_role, libelle, description } = req.body;
-
-        // 1. Validation des champs requis
         if (!code_role || !libelle || !description) {
             return res.status(400).json({
                 message: "Les champs code_role, libelle et description sont obligatoires."
             });
         }
-
-        // 2. Vérification de l'existence du rôle
         const existingRole = await roleModel.getRoleById(id_role);
-
         if (existingRole) {
             return res.status(409).json({
                 message: `Le rôle avec l'ID ${id_role} existe déjà.`
             });
         }
-
-        // 3. Création du rôle
         const roleId = await roleModel.createRole(code_role, libelle, description);
-
         if (!roleId) {
             return res.status(500).json({
                 message: "Échec de la création du rôle."
             });
         }
-
-        // 4. Réponse réussie
         res.status(201).json({ id_role: roleId });
-
     } catch (error) {
         res.status(500).json({
             message: "Une erreur est survenue lors de la création du rôle."

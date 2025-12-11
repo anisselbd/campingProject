@@ -14,7 +14,7 @@ const links = [
 
 import { useAuth } from '../Context/AuthContext';
 import { Menu, ActionIcon, Avatar, rem } from '@mantine/core';
-import { IconUser, IconLogout, IconSettings, IconDashboard } from '@tabler/icons-react';
+import { IconUser, IconLogout, IconSettings, IconDashboard, IconCalendar } from '@tabler/icons-react';
 
 export function Navbar() {
     const [opened, { toggle, close }] = useDisclosure(false);
@@ -76,6 +76,12 @@ export function Navbar() {
                                     </Menu.Target>
                                     <Menu.Dropdown>
                                         <Menu.Label>Mon compte</Menu.Label>
+                                        <Menu.Item
+                                            leftSection={<IconCalendar style={{ width: rem(14), height: rem(14) }} />}
+                                            onClick={() => navigate('/mes-reservations')}
+                                        >
+                                            Mes réservations
+                                        </Menu.Item>
                                         <Menu.Item leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}>
                                             Profil
                                         </Menu.Item>

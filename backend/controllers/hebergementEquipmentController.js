@@ -11,6 +11,17 @@ const getAllEquipsByHebergement = async (req, res) => {
     }
 }
 
+const getPublicEquipsByHebergement = async (req, res) => {
+    try {
+        const { hebergement_id } = req.params;
+        const equipements = await hebergementEquipementModel.getAllEquipsByHebergement(hebergement_id);
+        return res.status(200).json(equipements);
+    } catch (error) {
+        console.error("Erreur getPublicEquipsByHebergement:", error);
+        return res.status(500).json({ message: "Erreur lors de la récupération des équipements." });
+    }
+}
+
 const getHebergementsByEquipment = async (req, res) => {
     try {
         const { equipment_id } = req.params;
@@ -71,6 +82,7 @@ const deleteAccomodationEquipment = async (req, res) => {
 
 export default {
     getAllEquipsByHebergement,
+    getPublicEquipsByHebergement,
     getHebergementsByEquipment,
     createAccomodationEquipment,
     deleteAccomodationEquipment

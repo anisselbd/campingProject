@@ -275,6 +275,21 @@ const getByIdStay = async (id_sejour) => { // idem
     return row[0];
 }
 
+const getByClientId = async (client_id) => {
+    const sql = `
+        SELECT 
+            B.id_reservation, B.client_id, B.statut, B.montant_net, B.montant_paye, B.solde_restant,
+            S.id_sejour, S.hebergement_id, S.arrivee, S.depart, S.adultes, S.enfants, S.prix_nuit, S.nb_nuits, S.total_sejour,
+            A.nom_commercial AS hebergement_nom
+        FROM booking AS B
+        INNER JOIN stay AS S ON B.id_reservation = S.reservation_id
+        INNER JOIN accomodation AS A ON S.hebergement_id = A.id_hebergement
+        WHERE B.client_id = ?
+        ORDER BY S.arrivee DESC;
+    `;
+    const [rows] = await bdd.query(sql, [client_id]);
+    return rows;
+}
 
 
 export default {
@@ -283,6 +298,7 @@ export default {
     createStay,
     getAll,
     getById,
+    getByClientId,
     updateBooking,
     updateStay,
     getIdSejour,
@@ -290,5 +306,4 @@ export default {
     deleteBooking,
     getAllStay,
     getByIdStay
-
 }

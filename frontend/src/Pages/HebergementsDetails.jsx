@@ -12,6 +12,7 @@ export function HebergementsDetails() {
     const navigate = useNavigate();
     const { user, token } = useAuth();
     const [hebergement, setHebergement] = useState(null);
+    const [equipements, setEquipements] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
@@ -31,6 +32,22 @@ export function HebergementsDetails() {
 
         if (id) {
             fetchDetails();
+        }
+    }, [id]);
+
+    // Fetch équipements de l'hébergement
+    useEffect(() => {
+        const fetchEquipements = async () => {
+            try {
+                const response = await axios.get(`/api/hebergementEquipement/public/${id}`);
+                setEquipements(response.data);
+            } catch (err) {
+                console.error("Erreur chargement équipements:", err);
+            }
+        };
+
+        if (id) {
+            fetchEquipements();
         }
     }, [id]);
 
@@ -116,21 +133,24 @@ export function HebergementsDetails() {
                     </Group>
                     <Paper withBorder p="md" radius="md" mt="xl">
                         <Title order={3} size="h4" mb="md">Équipements inclus</Title>
-                        <List
-                            spacing="xs"
-                            size="sm"
-                            center
-                            icon={
-                                <ThemeIcon color="green" size={20} radius="xl">
-                                    <IconCheck size={12} />
-                                </ThemeIcon>
-                            }
-                        >
-                            <List.Item>Wi-Fi gratuit</List.Item>
-                            <List.Item>Place de parking</List.Item>
-                            <List.Item>Accès piscine</List.Item>
-                            <List.Item>Cuisine équipée</List.Item>
-                        </List>
+                        {equipements.length > 0 ? (
+                            <List
+                                spacing="xs"
+                                size="sm"
+                                center
+                                icon={
+                                    <ThemeIcon color="green" size={20} radius="xl">
+                                        <IconCheck size={12} />
+                                    </ThemeIcon>
+                                }
+                            >
+                                {equipements.map((equip) => (
+                                    <List.Item key={equip.id_equipment}>{equip.nom}</List.Item>
+                                ))}
+                            </List>
+                        ) : (
+                            <Text c="dimmed" size="sm">Aucun équipement spécifié</Text>
+                        )}
                     </Paper>
                     <Button fullWidth size="lg" color="brand" mt="xl" onClick={handleReserverClick}>
                         Réserver maintenant

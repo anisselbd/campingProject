@@ -222,6 +222,10 @@ const deleteBooking = async (req, res) => {
             return res.status(404).json({ message: "Reservation pas trouvè" });
         }
 
+        // Supprimer d'abord les options liées au séjour
+        const bdd = (await import('../config/bdd.js')).default;
+        await bdd.query('DELETE FROM stay_option WHERE sejour_id = ?', [id_sejour]);
+
         await bookingModel.deleteStay(id_sejour);
 
         const affectedRows = await bookingModel.deleteBooking(id_reservation);
@@ -300,7 +304,7 @@ const removeOptionToStay = async (req, res) => {
         }
 
         if (stayOption.sejour_id !== sejour_id) {
-            return res.status(403).json({ message: "l'option ne peut pas etre retirée de ce séjour car elle ne lui appartient pas." }); 
+            return res.status(403).json({ message: "l'option ne peut pas etre retirée de ce séjour car elle ne lui appartient pas." });
 
         }
 
@@ -345,7 +349,7 @@ const applyCouponToStay = async (req, res) => {
     const { sejour_id } = req.params;
     const { coupon_id } = req.body;
 
-    if (!sejour_id || !coupon_id){
+    if (!sejour_id || !coupon_id) {
         return res.status(400).json({ message: "Les Id sont obligatoires" });
     }
 
@@ -358,53 +362,53 @@ const applyCouponToStay = async (req, res) => {
             return res.status(404).json({ message: "Séjour ou coupon non trouvés." });
         }
 
-        if(!coupon.actif){
+        if (!coupon.actif) {
             return res.status(403).json({ message: "Coupon non actif." })
         }
-        
+
         const today = new Date();
         const validiteDebut = new Date(coupon.validite_debut);
         const validiteFin = new Date(coupon.validite_fin);
 
         if (today > validiteFin) {
-             return res.status(403).json({ message: "Ce coupon est expiré." });
+            return res.status(403).json({ message: "Ce coupon est expiré." });
         }
 
         if (validiteDebut && today < validiteDebut) {
-             return res.status(403).json({ message: "Ce coupon n'est pas encore valide." });
+            return res.status(403).json({ message: "Ce coupon n'est pas encore valide." });
         }
 
-        if(coupon.max_utilisations > 0){
+        if (coupon.max_utilisations > 0) {
             const currentUsage = await couponUsageModel.countUsageByCouponId(coupon.id_coupon);
-            if(currentUsage >= coupon.max_utilisations){
-                return res.status(403).json ({message:"Ce coupon a atteint sa limite d'utilisation."})
-            }         
+            if (currentUsage >= coupon.max_utilisations) {
+                return res.status(403).json({ message: "Ce coupon a atteint sa limite d'utilisation." })
+            }
         }
 
-        if (stay.total_sejour < coupon.montant_min){
+        if (stay.total_sejour < coupon.montant_min) {
             return res.status(403).json({ message: `Le montant total du séjour (${stay.total_sejour}€) n'atteint pas le minimum requis (${coupon.montant_min}€) pour ce coupon.` });
 
         }
 
-            //sconto
+        //sconto
 
         let montant_remise = 0;
         const total_courant = parseFloat(stay.total_sejour);
-        
+
         if (coupon.type_reduction === 'pourcentage') {
             montant_remise = (total_courant * coupon.valeur) / 100;
         } else if (coupon.type_reduction === 'fixe') {
             montant_remise = coupon.valeur;
 
             //registrazione 
-        
+
             const usageId = await couponUsageModel.registerCouponUsage(
                 coupon.id_coupon,
                 stay.id_reservation,
                 montant_remise);
-            
+
             const nouveau_total_sejour = total_courant - montant_remise;
-            
+
             const affectedRows = await bookingModel.updateStay(
                 sejour_id,
                 stay.arrivee,
@@ -416,10 +420,10 @@ const applyCouponToStay = async (req, res) => {
                 nouveau_total_sejour
             );
 
-            if (affectedRows === 0 && usageId){
+            if (affectedRows === 0 && usageId) {
                 return res.status(200).json({
                     message: "Coupon appliqué, mais aucun changement dans le total du séjour.",
-                montant_remise: montant_remise
+                    montant_remise: montant_remise
                 });
             }
 
@@ -429,10 +433,10 @@ const applyCouponToStay = async (req, res) => {
                 nouveau_total: nouveau_total_sejour
             });
 
-            
+
         }
-        
-        
+
+
 
     } catch (error) {
         console.error("Erreur lors de l'application du coupon:", error);
@@ -448,17 +452,88 @@ const applyCouponToStay = async (req, res) => {
 
 
 
+const getMyBookings = async (req, res) => {
+    try {
+        const client_id = req.user.id_user;
+
+        const bookings = await bookingModel.getByClientId(client_id);
+
+        return res.status(200).json(bookings);
+    } catch (error) {
+        console.error("Erreur getMyBookings:", error);
+        return res.status(500).json({ message: "Erreur lors de la récupération des réservations." });
+    }
+}
+const updateStatus = async (req, res) => {
+    const id_reservation = req.params.id_reservation;
+    const { statut } = req.body;
+
+    if (!statut) {
+        return res.status(400).json({ message: "Le statut est requis." });
+    }
+
+    try {
+        const sql = `UPDATE booking SET statut = ? WHERE id_reservation = ?`;
+        const bdd = (await import('../config/bdd.js')).default;
+        const [result] = await bdd.query(sql, [statut, id_reservation]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Réservation non trouvée." });
+        }
+
+        return res.status(200).json({ message: "Statut mis à jour avec succès." });
+    } catch (error) {
+        console.error("Erreur updateStatus:", error);
+        return res.status(500).json({ message: "Erreur lors de la mise à jour du statut." });
+    }
+}
+
+const cancelMyBooking = async (req, res) => {
+    const id_reservation = req.params.id_reservation;
+    const client_id = req.user.id_user;
+
+    try {
+        // Vérifier que la réservation appartient au client
+        const booking = await bookingModel.getById(id_reservation);
+
+        if (!booking) {
+            return res.status(404).json({ message: "Réservation non trouvée." });
+        }
+
+        if (booking.client_id !== client_id) {
+            return res.status(403).json({ message: "Vous ne pouvez pas annuler cette réservation." });
+        }
+
+        const id_sejour = await bookingModel.getIdSejour(id_reservation);
+
+        if (id_sejour) {
+            const bdd = (await import('../config/bdd.js')).default;
+            await bdd.query('DELETE FROM stay_option WHERE sejour_id = ?', [id_sejour]);
+            await bookingModel.deleteStay(id_sejour);
+        }
+
+        await bookingModel.deleteBooking(id_reservation);
+
+        return res.status(200).json({ message: "Réservation annulée avec succès." });
+    } catch (error) {
+        console.error("Erreur cancelMyBooking:", error);
+        return res.status(500).json({ message: "Erreur lors de l'annulation de la réservation." });
+    }
+}
+
 
 export default {
     createBooking,
     getAll,
     getById,
+    getMyBookings,
+    cancelMyBooking,
     updateBooking,
+    updateStatus,
     deleteBooking,
     addOptionToStay,
     removeOptionToStay,
     applyCouponToStay
-
 };
 
 

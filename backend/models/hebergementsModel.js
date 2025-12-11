@@ -26,10 +26,14 @@ const getAvailableHebergements = async () => {
 
 const getHebergementById = async (id) => {
     const [rows] = await db.query(`
-        SELECT id_hebergement, type_hebergement, reference_interne, nom_commercial, 
-               description, capacite_max, surface_m2, localisation, reservable, 
-               date_creation, date_desactivation 
-        FROM accomodation WHERE id_hebergement = ?
+        SELECT a.id_hebergement, a.type_hebergement, a.type_hebergement AS type_hebergement_id, 
+               a.reference_interne, a.nom_commercial, 
+               a.description, a.capacite_max, a.surface_m2, a.localisation, a.reservable, 
+               a.date_creation, a.date_desactivation,
+               at.nom AS type_nom
+        FROM accomodation a
+        LEFT JOIN accomodation_type at ON at.id_type = a.type_hebergement
+        WHERE a.id_hebergement = ?
     `, [id]);
     return rows[0];
 };
@@ -47,15 +51,15 @@ const getHebergementsByType = async (typeId) => {
 
 
 const createHebergement = async (hebergementData) => {
-    const { 
-        type_hebergement, 
-        reference_interne, 
-        nom_commercial, 
-        description, 
-        capacite_max, 
-        surface_m2, 
-        localisation, 
-        reservable 
+    const {
+        type_hebergement,
+        reference_interne,
+        nom_commercial,
+        description,
+        capacite_max,
+        surface_m2,
+        localisation,
+        reservable
     } = hebergementData;
 
     const [result] = await db.query(
@@ -70,15 +74,15 @@ const createHebergement = async (hebergementData) => {
 
 
 const updateHebergement = async (id, hebergementData) => {
-    const { 
-        type_hebergement, 
-        reference_interne, 
-        nom_commercial, 
-        description, 
-        capacite_max, 
-        surface_m2, 
-        localisation, 
-        reservable 
+    const {
+        type_hebergement,
+        reference_interne,
+        nom_commercial,
+        description,
+        capacite_max,
+        surface_m2,
+        localisation,
+        reservable
     } = hebergementData;
 
     await db.query(

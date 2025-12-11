@@ -90,7 +90,7 @@ const updateInvoice = async (req, res) => {
     const id = req.params.id_facture;
     const { 
         numero_facture, 
-        date_emission, // ??'
+        date_emission,
         montant_ht, 
         montant_tva, 
         montant_ttc, 
