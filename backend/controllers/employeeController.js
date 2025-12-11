@@ -48,12 +48,12 @@ const createEmployee = async (req, res) => {
 
         const existingEmployee = await employeeModel.fetchAllEmployeeById(id_employee);
         if (existingEmployee) {
-            return res.status(409).json({ message: `L'employé ${id_employee} exist déjà` });
+            return res.status(409).json({ message: `L'employé ${id_employee} existe déjà` });
         }
     } catch (error) {
         console.error(error);
         res.status(500);
-        res.json({ message: "Erreur du serveur lors de la ceréation des employés" });
+        res.json({ message: "Erreur du serveur lors de la création des employés" });
     }
 }
 

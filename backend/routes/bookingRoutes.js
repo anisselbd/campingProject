@@ -13,5 +13,9 @@ router.put('/:id_reservation',[adminMiddleware,authMiddleware], bookingControlle
 router.delete('/:id_reservation',[adminMiddleware,authMiddleware], bookingController.deleteBooking);
 router.post('/:sejour_id/option', [authMiddleware], bookingController.addOptionToStay);
 router.delete('/:sejour_id/option', [authMiddleware], bookingController.removeOptionToStay);
+router.post('/:sejour_id/coupon', [authMiddleware], bookingController.applyCouponToStay);
+
+
+
 
 export default router;

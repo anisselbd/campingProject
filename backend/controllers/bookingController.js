@@ -1,6 +1,8 @@
 import bookingModel from "../models/bookingModel.js";
 import stayOptionModel from "../models/stayOptionModel.js";
 import optionModel from "../models/optionModel.js";
+import couponModel from "../models/couponModel.js";
+import couponUsageModel from "../models/couponUsageModel.js";
 
 
 
@@ -339,6 +341,114 @@ const removeOptionToStay = async (req, res) => {
     }
 }
 
+const applyCouponToStay = async (req, res) => {
+    const { sejour_id } = req.params;
+    const { coupon_id } = req.body;
+
+    if (!sejour_id || !coupon_id){
+        return res.status(400).json({ message: "Les Id sont obligatoires" });
+    }
+
+
+    try {
+        const stay = await bookingModel.getByIdStay(sejour_id);
+        const coupon = await couponModel.getCouponById(coupon_id);
+
+        if (!stay || !coupon) {
+            return res.status(404).json({ message: "Séjour ou coupon non trouvés." });
+        }
+
+        if(!coupon.actif){
+            return res.status(403).json({ message: "Coupon non actif." })
+        }
+        
+        const today = new Date();
+        const validiteDebut = new Date(coupon.validite_debut);
+        const validiteFin = new Date(coupon.validite_fin);
+
+        if (today > validiteFin) {
+             return res.status(403).json({ message: "Ce coupon est expiré." });
+        }
+
+        if (validiteDebut && today < validiteDebut) {
+             return res.status(403).json({ message: "Ce coupon n'est pas encore valide." });
+        }
+
+        if(coupon.max_utilisations > 0){
+            const currentUsage = await couponUsageModel.countUsageByCouponId(coupon.id_coupon);
+            if(currentUsage >= coupon.max_utilisations){
+                return res.status(403).json ({message:"Ce coupon a atteint sa limite d'utilisation."})
+            }         
+        }
+
+        if (stay.total_sejour < coupon.montant_min){
+            return res.status(403).json({ message: `Le montant total du séjour (${stay.total_sejour}€) n'atteint pas le minimum requis (${coupon.montant_min}€) pour ce coupon.` });
+
+        }
+
+            //sconto
+
+        let montant_remise = 0;
+        const total_courant = parseFloat(stay.total_sejour);
+        
+        if (coupon.type_reduction === 'pourcentage') {
+            montant_remise = (total_courant * coupon.valeur) / 100;
+        } else if (coupon.type_reduction === 'fixe') {
+            montant_remise = coupon.valeur;
+
+            //registrazione 
+        
+            const usageId = await couponUsageModel.registerCouponUsage(
+                coupon.id_coupon,
+                stay.id_reservation,
+                montant_remise);
+            
+            const nouveau_total_sejour = total_courant - montant_remise;
+            
+            const affectedRows = await bookingModel.updateStay(
+                sejour_id,
+                stay.arrivee,
+                stay.depart,
+                stay.adultes,
+                stay.enfants,
+                stay.prix_nuit,
+                stay.nb_nuits,
+                nouveau_total_sejour
+            );
+
+            if (affectedRows === 0 && usageId){
+                return res.status(200).json({
+                    message: "Coupon appliqué, mais aucun changement dans le total du séjour.",
+                montant_remise: montant_remise
+                });
+            }
+
+            return res.status(200).json({
+                message: "Coupon appliqué avec succès.",
+                montant_remise: montant_remise,
+                nouveau_total: nouveau_total_sejour
+            });
+
+            
+        }
+        
+        
+
+    } catch (error) {
+        console.error("Erreur lors de l'application du coupon:", error);
+        return res.status(500).json({ message: "Erreur serveur lors de l'application du coupon." });
+    }
+
+
+
+}
+
+
+
+
+
+
+
 export default {
     createBooking,
     getAll,
@@ -346,7 +456,8 @@ export default {
     updateBooking,
     deleteBooking,
     addOptionToStay,
-    removeOptionToStay
+    removeOptionToStay,
+    applyCouponToStay
 
 };
 
