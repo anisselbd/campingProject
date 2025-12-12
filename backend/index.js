@@ -10,6 +10,7 @@ import optionRoutes from './routes/optionRoutes.js';
 import couponRoutes from './routes/couponRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import stripeRoutes from './routes/stripeRoutes.js';
 
 
 
@@ -56,6 +57,7 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/invoice', invoiceRoutes)
 app.use('/api/payment', paymentRoutes);
 app.use("/api/shift", employeeShiftsRoutes);
+app.use('/api/stripe', stripeRoutes);
 
 
 

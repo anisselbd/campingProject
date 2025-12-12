@@ -3,6 +3,12 @@ import { DateInput } from '@mantine/dates';
 import { IconCalendar, IconUsers, IconAlertCircle, IconCheck, IconCurrencyEuro, IconSun } from '@tabler/icons-react';
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+import { PaymentForm } from './PaymentForm';
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+
 
 export function BookingModal({ opened, onClose, hebergement, user, token }) {
     const [dateArrivee, setDateArrivee] = useState(null);
@@ -13,6 +19,8 @@ export function BookingModal({ opened, onClose, hebergement, user, token }) {
     const [loadingPrice, setLoadingPrice] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
+    const [step, setStep] = useState('details');
+    const [reservationId, setReservationId] = useState(null);
 
     // Données de tarification dynamique
     const [pricing, setPricing] = useState(null);
@@ -135,13 +143,15 @@ export function BookingModal({ opened, onClose, hebergement, user, token }) {
                 id_sejour: null
             };
 
-            await axios.post('/api/booking', bookingData, {
+            const response = await axios.post('/api/booking', bookingData, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             });
 
-            setSuccess(true);
+            // Stocker l'ID et passer à l'étape paiement
+            setReservationId(response.data.id_reservation);
+            setStep('payment');
         } catch (err) {
             console.error("Erreur lors de la réservation:", err);
             if (err.response?.status === 409) {
@@ -176,7 +186,7 @@ export function BookingModal({ opened, onClose, hebergement, user, token }) {
             size="md"
             centered
         >
-            {success ? (
+            {step === 'success' ? (
                 <Stack align="center" py="xl">
                     <IconCheck size={60} color="green" />
                     <Text fw={700} size="xl" c="green">Réservation confirmée !</Text>
@@ -187,6 +197,24 @@ export function BookingModal({ opened, onClose, hebergement, user, token }) {
                     <Button color="brand" onClick={handleClose} mt="md">
                         Fermer
                     </Button>
+                </Stack>
+            ) : step === 'payment' ? (
+                <Stack>
+                    <Text fw={500} size="lg" mb="md" ta="center">
+                        💳 Paiement - {pricing?.prix_total.toFixed(2)} €
+                    </Text>
+                    <Elements stripe={stripePromise}>
+                        <PaymentForm
+                            amount={pricing?.prix_total || 0}
+                            reservationId={reservationId}
+                            token={token}
+                            onSuccess={() => setStep('success')}
+                            onError={(err) => setError(err.message || 'Erreur de paiement')}
+                        />
+                    </Elements>
+                    {error && (
+                        <Alert icon={<IconAlertCircle size={16} />} color="red" mt="md">{error}</Alert>
+                    )}
                 </Stack>
             ) : (
                 <Stack>
