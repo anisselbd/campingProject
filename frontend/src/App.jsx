@@ -11,6 +11,8 @@ import { HebergementsDetails } from './Pages/HebergementsDetails';
 import { Tarifs } from './Pages/Tarifs';
 import { MesReservations } from './Pages/MesReservations';
 import { Dashboard } from './Pages/adminPages/Dashboard';
+import { Profil } from './Pages/Profil';
+
 
 function App() {
     return (
@@ -26,7 +28,9 @@ function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/mes-reservations" element={<MesReservations />} />
+                <Route path='/profil' element={<Profil />} />
                 <Route path="/admin/dashboard" element={<Dashboard />} />
+
             </Routes>
             <Footer />
         </BrowserRouter>

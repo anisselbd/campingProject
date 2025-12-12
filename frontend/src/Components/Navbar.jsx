@@ -82,7 +82,8 @@ export function Navbar() {
                                         >
                                             Mes réservations
                                         </Menu.Item>
-                                        <Menu.Item leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}>
+                                        <Menu.Item leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
+                                        onClick={()=> navigate('/profil')}>
                                             Profil
                                         </Menu.Item>
                                         <Menu.Divider />

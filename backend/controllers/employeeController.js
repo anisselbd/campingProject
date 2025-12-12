@@ -27,7 +27,7 @@ const getAllEmployeeById = async (req, res) => {
         }
 
     } catch (error) {
-        res.status(200);
+        res.status(500);
         res.json({ message: "Erreur du serveur lors de la récupération de l'employé." });
 
     }
