@@ -18,13 +18,13 @@ export function PaymentForm({ amount, reservationId, token, onSuccess, onError }
         setError(null);
 
         try {
-            // 1. Appeler ton backend pour créer le PaymentIntent
+           
             const { data } = await axios.post('/api/stripe/create-payment-intent', 
                 { amount, reservation_id: reservationId },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            // 2. Confirmer le paiement avec Stripe
+            
             const result = await stripe.confirmCardPayment(data.clientSecret, {
                 payment_method: {
                     card: elements.getElement(CardElement)
