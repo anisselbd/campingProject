@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button, Alert, Paper, Text, Loader } from '@mantine/core';
 import axios from 'axios';
+import { trackPaymentSuccess } from '../utils/analytics';
 
 export function PaymentForm({ amount, reservationId, token, onSuccess, onError }) {
     const stripe = useStripe();
@@ -11,20 +12,20 @@ export function PaymentForm({ amount, reservationId, token, onSuccess, onError }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!stripe || !elements) return;
 
         setLoading(true);
         setError(null);
 
         try {
-           
-            const { data } = await axios.post('/api/stripe/create-payment-intent', 
+
+            const { data } = await axios.post('/api/stripe/create-payment-intent',
                 { amount, reservation_id: reservationId },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            
+
             const result = await stripe.confirmCardPayment(data.clientSecret, {
                 payment_method: {
                     card: elements.getElement(CardElement)
@@ -35,6 +36,13 @@ export function PaymentForm({ amount, reservationId, token, onSuccess, onError }
                 setError(result.error.message);
                 onError?.(result.error);
             } else if (result.paymentIntent.status === 'succeeded') {
+                // Track GA4: paiement réussi
+                trackPaymentSuccess({
+                    reservation_id: reservationId,
+                    montant: amount,
+                    payment_method: 'stripe'
+                });
+
                 onSuccess?.(result.paymentIntent);
             }
         } catch (err) {
@@ -55,13 +63,13 @@ export function PaymentForm({ amount, reservationId, token, onSuccess, onError }
                     }
                 }} />
             </Paper>
-            
+
             {error && <Alert color="red" mt="md">{error}</Alert>}
-            
-            <Button 
-                type="submit" 
-                fullWidth 
-                mt="md" 
+
+            <Button
+                type="submit"
+                fullWidth
+                mt="md"
                 size="lg"
                 color="brand"
                 disabled={!stripe || loading}

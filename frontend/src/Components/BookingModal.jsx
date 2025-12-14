@@ -6,6 +6,7 @@ import axios from 'axios';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { PaymentForm } from './PaymentForm';
+import { trackStartReservation, trackReservationSubmitted } from '../utils/analytics';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
@@ -69,6 +70,13 @@ export function BookingModal({ opened, onClose, hebergement, user, token }) {
         fetchPrice();
     }, [dateArrivee, dateDepart, adultes, enfants, nbNuits, hebergement?.type_hebergement_id]);
 
+    // Track ouverture modal de réservation
+    useEffect(() => {
+        if (opened && hebergement) {
+            trackStartReservation(hebergement);
+        }
+    }, [opened, hebergement]);
+
     const resetForm = () => {
         setDateArrivee(null);
         setDateDepart(null);
@@ -85,7 +93,7 @@ export function BookingModal({ opened, onClose, hebergement, user, token }) {
     };
 
     const handleSubmit = async () => {
-        // Validations
+
         if (!dateArrivee || !dateDepart) {
             setError("Veuillez sélectionner les dates d'arrivée et de départ.");
             return;
@@ -149,7 +157,16 @@ export function BookingModal({ opened, onClose, hebergement, user, token }) {
                 }
             });
 
-            // Stocker l'ID et passer à l'étape paiement
+            // Track GA4 si réservation soumise avec succès
+            trackReservationSubmitted({
+                hebergement_id: hebergement.id_hebergement,
+                nb_nuits: nbNuits,
+                nb_personnes: adultes + enfants,
+                montant_total: montantTotal,
+                saison: pricing?.saison || 'unknown'
+            });
+
+            // Stocker l'ID et passer à l'étape du paiement
             setReservationId(response.data.id_reservation);
             setStep('payment');
         } catch (err) {
