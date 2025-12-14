@@ -6,6 +6,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../Context/AuthContext';
 import { BookingModal } from '../Components/BookingModal';
+import { trackViewHebergement } from '../utils/analytics';
 
 export function HebergementsDetails() {
     const { id } = useParams();
@@ -22,6 +23,9 @@ export function HebergementsDetails() {
             try {
                 const response = await axios.get(`/api/hebergements/${id}`);
                 setHebergement(response.data);
+
+                // Track GA4 event: visualisation d'un hébergement
+                trackViewHebergement(response.data);
             } catch (err) {
                 console.error("Erreur chargement détails:", err);
                 setError("Impossible de charger les détails de cet hébergement.");
