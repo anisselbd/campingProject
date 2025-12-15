@@ -23,6 +23,7 @@ export function UsersTab({
                     <Table.Th>ID</Table.Th>
                     <Table.Th>Nom</Table.Th>
                     <Table.Th>Email</Table.Th>
+                    <Table.Th>Numéro de téléphone</Table.Th>
                     <Table.Th>Type</Table.Th>
                     <Table.Th>Statut</Table.Th>
                     <Table.Th>Actions</Table.Th>
@@ -34,6 +35,7 @@ export function UsersTab({
                         <Table.Td>{u.id_user}</Table.Td>
                         <Table.Td>{u.prenom} {u.nom}</Table.Td>
                         <Table.Td>{u.email}</Table.Td>
+                        <Table.Td>{u.telephone}</Table.Td>
                         <Table.Td>
                             <Badge color={u.type_compte === 'admin' ? 'red' : 'blue'}>
                                 {u.type_compte}

@@ -1,4 +1,4 @@
-import { Container, Title, Text, Button, Image, SimpleGrid, Group, Badge, Paper, List, ThemeIcon, Loader, Center, Alert, Box } from '@mantine/core';
+import { Container, Title, Text, Button, Image, SimpleGrid, Group, Badge, Paper, List, ThemeIcon, Loader, Center, Alert, Box, Modal } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconUsers, IconRuler, IconMapPin, IconCheck, IconArrowLeft, IconAlertCircle } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
@@ -7,6 +7,27 @@ import axios from 'axios';
 import { useAuth } from '../Context/AuthContext';
 import { BookingModal } from '../Components/BookingModal';
 import { trackViewHebergement } from '../utils/analytics';
+import chalet1 from '../assets/chalet1.jpg';
+import chalet2 from '../assets/chalet2.jpg';
+import tente from '../assets/tente.jpg';
+import mobileHome1 from '../assets/mobileHome1.jpg';
+import mobilHome2 from '../assets/mobilHome2.jpg';
+import mobilHome3 from '../assets/mobilHome3.jpg';
+
+
+const imageMap = {
+    'Chalet': chalet1,
+    'Tente': tente,
+    'Mobil-home': mobileHome1,
+    'default': chalet1
+};
+
+const galleryMap = {
+    'Chalet': [chalet2, chalet1],
+    'Tente': [tente, tente],
+    'Mobil-home': [mobilHome2, mobilHome3],
+    'default': [chalet1, chalet2]
+};
 
 export function HebergementsDetails() {
     const { id } = useParams();
@@ -17,15 +38,22 @@ export function HebergementsDetails() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
+    const [tarifs, setTarifs] = useState([]);
+    const [selectedImage, setSelectedImage] = useState(null);
 
     useEffect(() => {
         const fetchDetails = async () => {
             try {
-                const response = await axios.get(`/api/hebergements/${id}`);
-                setHebergement(response.data);
+                const [hebergementRes, tarifsRes] = await Promise.all([
+                    axios.get(`/api/hebergements/${id}`),
+                    axios.get('/api/tarif/public')
+                ]);
+
+                setHebergement(hebergementRes.data);
+                setTarifs(tarifsRes.data);
 
                 // Track GA4 event: visualisation d'un hébergement
-                trackViewHebergement(response.data);
+                trackViewHebergement(hebergementRes.data);
             } catch (err) {
                 console.error("Erreur chargement détails:", err);
                 setError("Impossible de charger les détails de cet hébergement.");
@@ -54,6 +82,13 @@ export function HebergementsDetails() {
             fetchEquipements();
         }
     }, [id]);
+
+    // Fonction pour trouver le prix minimum d'un type d'hébergement
+    const getPrixMin = (typeHebergement) => {
+        const tarifsType = tarifs.filter(t => t.type_hebergement === typeHebergement);
+        if (tarifsType.length === 0) return null;
+        return Math.min(...tarifsType.map(t => parseFloat(t.prix_par_nuit)));
+    };
 
     const handleReserverClick = () => {
         if (!user) {
@@ -85,7 +120,12 @@ export function HebergementsDetails() {
     }
 
     return (
-        <Container size="xl" py="xl">
+        <Container size="xl" py="xl" sx={(theme) => ({
+            '@media (max-width: 767px)': {
+                paddingTop: theme.spacing.lg,
+                paddingBottom: theme.spacing.lg,
+            },
+        })}>
             <Button
                 leftSection={<IconArrowLeft size={16} />}
                 variant="subtle"
@@ -99,16 +139,44 @@ export function HebergementsDetails() {
             <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xl">
                 <Box>
                     <Image
-                        src="https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80"
+                        src={imageMap[hebergement.type_hebergement] || imageMap.default}
                         radius="md"
                         h={400}
                         fit="cover"
                         alt={hebergement.nom_commercial}
                         mb="sm"
+                        onClick={() => setSelectedImage(imageMap[hebergement.type_hebergement] || imageMap.default)}
+                        sx={(theme) => ({
+                            cursor: 'pointer',
+                            transition: 'transform 0.2s',
+                            '&:hover': {
+                                transform: 'scale(1.02)',
+                            },
+                            '@media (max-width: 767px)': {
+                                height: 300,
+                            },
+                        })}
                     />
-                    <Group>
-                        <Image src="https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" w={100} h={80} radius="sm" fit="cover" />
-                        <Image src="https://images.unsplash.com/photo-1537905569824-f89f14cceb68?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" w={100} h={80} radius="sm" fit="cover" />
+                    <Group visibleFrom="sm">
+                        {(galleryMap[hebergement.type_hebergement] || galleryMap.default).map((img, idx) => (
+                            <Image
+                                key={idx}
+                                src={img}
+                                w={100}
+                                h={80}
+                                radius="sm"
+                                fit="cover"
+                                onClick={() => setSelectedImage(img)}
+                                sx={{
+                                    cursor: 'pointer',
+                                    transition: 'transform 0.2s, box-shadow 0.2s',
+                                    '&:hover': {
+                                        transform: 'scale(1.05)',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                    },
+                                }}
+                            />
+                        ))}
                     </Group>
                 </Box>
                 <Box>
@@ -117,11 +185,22 @@ export function HebergementsDetails() {
                         <Badge size="lg" color="brand" variant="light">{hebergement.type_hebergement}</Badge>
                     </Group>
 
-                    <Text size="xl" fw={700} c="brand" mt="sm">{hebergement.prix_base_nuitee || 50}€ <Text span size="sm" c="dimmed" fw={400}>/ nuit</Text></Text>
+                    <Text size="xl" fw={700} c="brand" mt="sm">
+                        {getPrixMin(hebergement.type_hebergement) ? (
+                            <>À partir de {getPrixMin(hebergement.type_hebergement).toFixed(2)}€ <Text span size="sm" c="dimmed" fw={400}>/ nuit</Text></>
+                        ) : (
+                            'Prix sur demande'
+                        )}
+                    </Text>
                     <Text mt="md" size="lg" c="dimmed">
                         {hebergement.description}
                     </Text>
-                    <Group mt="xl" spacing="xl">
+                    <Group mt="xl" spacing="xl" sx={(theme) => ({
+                        '@media (max-width: 767px)': {
+                            flexWrap: 'wrap',
+                            gap: theme.spacing.md,
+                        },
+                    })}>
                         <Group gap={5}>
                             <IconUsers size={20} color="gray" />
                             <Text>{hebergement.capacite_max} Personnes</Text>
@@ -169,6 +248,25 @@ export function HebergementsDetails() {
                 user={user}
                 token={token}
             />
+            <Modal
+                opened={selectedImage !== null}
+                onClose={() => setSelectedImage(null)}
+                size="xl"
+                centered
+                padding={0}
+                withCloseButton={true}
+                overlayProps={{
+                    opacity: 0.9,
+                    blur: 3,
+                }}
+            >
+                <Image
+                    src={selectedImage}
+                    alt="Image agrandie"
+                    fit="contain"
+                    style={{ maxHeight: '90vh' }}
+                />
+            </Modal>
         </Container>
     );
 }

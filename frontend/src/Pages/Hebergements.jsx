@@ -3,24 +3,39 @@ import { IconUsers, IconRuler, IconMapPin, IconAlertCircle } from '@tabler/icons
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
+import chalet1 from '../assets/chalet1.jpg';
+import tente from '../assets/tente.jpg';
+import mobileHome1 from '../assets/mobileHome1.jpg';
+const imageMap = {
+    'Chalet': chalet1,
+    'Tente': tente,
+    'Mobil-home': mobileHome1,
+    'default': chalet1
+};
 
 export function Hebergements() {
     const [hebergements, setHebergements] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchParams] = useSearchParams();
+    const [tarifs, setTarifs] = useState([]);
 
     useEffect(() => {
-        const fetchHebergements = async () => {
+        const fetchData = async () => {
             try {
-                const response = await axios.get('/api/hebergements/available');
-                let data = response.data;
+                const [hebergementsRes, tarifsRes] = await Promise.all([
+                    axios.get('/api/hebergements/available'),
+                    axios.get('/api/tarif/public')
+                ]);
+
+                let data = hebergementsRes.data;
                 const travelers = searchParams.get('travelers');
                 if (travelers) {
                     data = data.filter(h => h.capacite_max >= parseInt(travelers));
                 }
 
                 setHebergements(data);
+                setTarifs(tarifsRes.data);
             } catch (err) {
                 console.error("Erreur chargement hébergements:", err);
                 setError("Impossible de charger les hébergements. Veuillez réessayer plus tard.");
@@ -29,8 +44,14 @@ export function Hebergements() {
             }
         };
 
-        fetchHebergements();
+        fetchData();
     }, [searchParams]);
+
+    const getPrixMin = (typeHebergement) => {
+        const tarifsType = tarifs.filter(t => t.type_hebergement === typeHebergement);
+        if (tarifsType.length === 0) return null;
+        return Math.min(...tarifsType.map(t => parseFloat(t.prix_par_nuit)));
+    };
 
     if (loading) {
         return (
@@ -59,10 +80,10 @@ export function Hebergements() {
             ) : (
                 <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xl">
                     {hebergements.map((item) => (
-                        <Card key={item.id_hebergement || item.reference_interne} shadow="sm" padding="lg" radius="md" withBorder>
+                        <Card key={item.id_hebergement || item.reference_interne} shadow="sm" padding="lg" radius="md" withBorder style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                             <Card.Section>
                                 <Image
-                                    src="https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+                                    src={imageMap[item.type_hebergement] || imageMap.default}
                                     height={160}
                                     alt={item.nom_commercial}
                                 />
@@ -73,7 +94,7 @@ export function Hebergements() {
                                     {item.type_hebergement || 'Premium'}
                                 </Badge>
                             </Group>
-                            <Text size="sm" c="dimmed" lineClamp={3} mb="md">
+                            <Text size="sm" c="dimmed" lineClamp={3} mb="md" style={{ flexGrow: 1 }}>
                                 {item.description || "Profitez d'un séjour inoubliable dans cet hébergement tout confort."}
                             </Text>
 
@@ -93,6 +114,14 @@ export function Hebergements() {
                                     <Text size="sm" c="dimmed">{item.localisation}</Text>
                                 </Group>
                             )}
+
+                            {getPrixMin(item.type_hebergement) && (
+                                <Text size="lg" fw={700} c="brand" mt="xs" mb="md">
+                                    À partir de {getPrixMin(item.type_hebergement).toFixed(2)}€
+                                    <Text span size="sm" c="dimmed" fw={400}> / nuit</Text>
+                                </Text>
+                            )}
+
                             <Button
                                 color="brand"
                                 fullWidth

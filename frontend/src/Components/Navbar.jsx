@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Container, Group, Burger, Button, Text, Box, Drawer, ScrollArea, Divider } from '@mantine/core';
+import { Container, Group, Burger, Button, Text, Box, Drawer, ScrollArea, Divider, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { IconTent } from '@tabler/icons-react';
+import logoCamping from '../assets/logoCamping.svg';
 
 const links = [
     { link: '/', label: 'Accueil' },
     { link: '/hebergements', label: 'Hébergements' },
+    { link: '/actualites', label: 'Actualités' },
     { link: '/galerie', label: 'Galerie' },
     { link: '/tarifs', label: 'Tarifs' },
     { link: '/contact', label: 'Contact' },
@@ -50,8 +51,8 @@ export function Navbar() {
             <header style={{ height: 60, borderBottom: '1px solid #e9ecef', backgroundColor: 'white' }}>
                 <Container size="xl" style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Group gap="xs" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-                        <IconTent size={30} color="#2E8B57" />
-                        <Text fw={700} size="lg">Camping Premium</Text>
+                        <img src={logoCamping} alt="Logo Camping" style={{ width: 40, height: 40 }} />
+                        <Text fw={1000} size="lg" style={{ textShadow: '5px 5px 5px rgba(0, 0, 0, 0.5)' }} >Ô Soleil Brulant</Text>
                     </Group>
 
                     <Group gap={5} visibleFrom="md">
@@ -60,12 +61,12 @@ export function Navbar() {
                             <Group gap={5}>
                                 {user.type_compte === 'admin' && (
                                     <Button
-                                        variant="light"
-                                        color="red"
+                                        variant="dark"
+                                        color="blue"
                                         leftSection={<IconDashboard size={18} />}
                                         onClick={() => navigate('/admin/dashboard')}
                                     >
-                                        Dashboard
+                                        Dashboard Admin
                                     </Button>
                                 )}
                                 <Menu shadow="md" width={200}>
@@ -83,7 +84,7 @@ export function Navbar() {
                                             Mes réservations
                                         </Menu.Item>
                                         <Menu.Item leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
-                                        onClick={()=> navigate('/profil')}>
+                                            onClick={() => navigate('/profil')}>
                                             Profil
                                         </Menu.Item>
                                         <Menu.Divider />
@@ -124,16 +125,58 @@ export function Navbar() {
                 <ScrollArea h={`calc(100vh - 80px)`} mx="-md">
                     <Divider my="sm" />
 
-                    <Group justify="center" grow pb="xl" px="md">
+                    <Stack justify="center" pb="xl" px="md">
                         {items}
-                    </Group>
+                    </Stack>
 
                     <Divider my="sm" />
 
-                    <Group justify="center" grow pb="xl" px="md">
-                        <Button onClick={() => { navigate('/register'); close(); }}>Inscription</Button>
-                        <Button variant="light" onClick={() => { navigate('/login'); close(); }}>Connexion</Button>
-                    </Group>
+                    {user ? (
+                        <Stack pb="xl" px="md">
+                            <Text size="sm" fw={700} c="dimmed">Connecté en tant que {user.prenom}</Text>
+                            {user.type_compte === 'admin' && (
+                                <Button
+                                    variant="light"
+                                    color="red"
+                                    leftSection={<IconDashboard size={18} />}
+                                    onClick={() => { navigate('/admin/dashboard'); close(); }}
+                                >
+                                    Dashboard
+                                </Button>
+                            )}
+                            <Button
+                                variant="subtle"
+                                leftSection={<IconCalendar size={18} />}
+                                onClick={() => { navigate('/mes-reservations'); close(); }}
+                            >
+                                Mes réservations
+                            </Button>
+                            <Button
+                                variant="subtle"
+                                leftSection={<IconSettings size={18} />}
+                                onClick={() => { navigate('/profil'); close(); }}
+                            >
+                                Mon profil
+                            </Button>
+                            <Button
+                                variant="outline"
+                                color="red"
+                                leftSection={<IconLogout size={18} />}
+                                onClick={() => {
+                                    logout();
+                                    navigate('/');
+                                    close();
+                                }}
+                            >
+                                Déconnexion
+                            </Button>
+                        </Stack>
+                    ) : (
+                        <Stack justify="center" pb="xl" px="md">
+                            <Button onClick={() => { navigate('/register'); close(); }}>Inscription</Button>
+                            <Button variant="light" onClick={() => { navigate('/login'); close(); }}>Connexion</Button>
+                        </Stack>
+                    )}
                 </ScrollArea>
             </Drawer>
         </Box>
