@@ -10,9 +10,7 @@ import optionRoutes from './routes/optionRoutes.js';
 import couponRoutes from './routes/couponRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
-
-
-
+import stripeRoutes from './routes/stripeRoutes.js';
 import rolesRoutes from "./routes/rolesRoutes.js";
 import ticketsRoutes from "./routes/ticketsRoutes.js";
 import employeeRoutes from "./routes/employeeRoutes.js";
@@ -56,6 +54,7 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/invoice', invoiceRoutes)
 app.use('/api/payment', paymentRoutes);
 app.use("/api/shift", employeeShiftsRoutes);
+app.use('/api/stripe', stripeRoutes);
 
 
 
@@ -83,5 +82,5 @@ app.use((err, req, res, next) => {
 
 // Démarrer le serveur
 app.listen(port, () => {
-    console.log(`🚀 Serveur démarré sur le port ${port}`);
+    console.log(`Serveur démarré sur le port ${port}`);
 });

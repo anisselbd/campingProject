@@ -15,6 +15,8 @@
     "@mantine/dates": "^8.3.9",
     "@mantine/form": "^8.3.9",
     "@mantine/hooks": "^8.3.9",
+    "@stripe/react-stripe-js": "^5.4.1",
+    "@stripe/stripe-js": "^8.5.3",
     "@tabler/icons-react": "^3.35.0",
     "axios": "^1.13.2",
     "dayjs": "^1.11.19",

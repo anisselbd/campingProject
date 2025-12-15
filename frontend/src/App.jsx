@@ -12,11 +12,13 @@ import { Tarifs } from './Pages/Tarifs';
 import { MesReservations } from './Pages/MesReservations';
 import { Dashboard } from './Pages/adminPages/Dashboard';
 import { Profil } from './Pages/Profil';
+import { usePageTracking } from './hooks/usePageTracking';
 
 
-function App() {
+function AppContent() {
+    usePageTracking(); // pour suivre les pages avec GA4 analytics
     return (
-        <BrowserRouter>
+        <>
             <Navbar />
             <Routes>
                 <Route path="/" element={<Home />} />
@@ -30,9 +32,16 @@ function App() {
                 <Route path="/mes-reservations" element={<MesReservations />} />
                 <Route path='/profil' element={<Profil />} />
                 <Route path="/admin/dashboard" element={<Dashboard />} />
-
             </Routes>
             <Footer />
+        </>
+    );
+}
+
+function App() {
+    return (
+        <BrowserRouter>
+            <AppContent />
         </BrowserRouter>
     );
 }
