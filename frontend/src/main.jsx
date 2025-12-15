@@ -5,6 +5,8 @@ import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css';
 import './index.css'
 import App from './App.jsx'
+import emailjs from '@emailjs/browser';
+
 
 const theme = createTheme({
   focusRing: 'auto',
@@ -28,6 +30,9 @@ const theme = createTheme({
     },
   },
 });
+
+//emailjs.init('OUkE5zQHHfP7OYFEy');
+
 
 import { AuthProvider } from './Context/AuthContext.jsx'
 
