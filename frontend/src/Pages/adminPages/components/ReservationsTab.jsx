@@ -1,7 +1,8 @@
 import { Table, Badge, Group, Text, Loader, Center, Alert, Select, Paper, Stack, TextInput, ActionIcon } from '@mantine/core';
-import { IconAlertCircle, IconSearch, IconTrash } from '@tabler/icons-react';
+import { IconAlertCircle, IconSearch, IconTrash, IconFileInvoice } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { generateInvoicePDF } from '../../../utils/generateInvoicePDF';
 
 export function ReservationsTab({ token }) {
     const [reservations, setReservations] = useState([]);
@@ -74,6 +75,15 @@ export function ReservationsTab({ token }) {
             setReservations(prev => prev.filter(r => r.id_reservation !== id_reservation));
         } catch (err) {
             console.error('Erreur suppression:', err);
+        }
+    };
+
+    const handleDownloadInvoice = (reservation) => {
+        try {
+            generateInvoicePDF(reservation);
+        } catch (err) {
+            console.error('Erreur génération PDF:', err);
+            alert('Erreur lors de la génération de la facture');
         }
     };
 
@@ -181,13 +191,24 @@ export function ReservationsTab({ token }) {
                                         />
                                     </Table.Td>
                                     <Table.Td>
-                                        <ActionIcon
-                                            color="red"
-                                            variant="subtle"
-                                            onClick={() => handleDelete(reservation.id_reservation)}
-                                        >
-                                            <IconTrash size={16} />
-                                        </ActionIcon>
+                                        <Group gap="xs">
+                                            <ActionIcon
+                                                color="blue"
+                                                variant="subtle"
+                                                onClick={() => handleDownloadInvoice(reservation)}
+                                                title="Télécharger la facture PDF"
+                                            >
+                                                <IconFileInvoice size={16} />
+                                            </ActionIcon>
+                                            <ActionIcon
+                                                color="red"
+                                                variant="subtle"
+                                                onClick={() => handleDelete(reservation.id_reservation)}
+                                                title="Supprimer la réservation"
+                                            >
+                                                <IconTrash size={16} />
+                                            </ActionIcon>
+                                        </Group>
                                     </Table.Td>
                                 </Table.Tr>
                             ))

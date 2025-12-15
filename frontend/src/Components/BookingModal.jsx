@@ -202,6 +202,10 @@ export function BookingModal({ opened, onClose, hebergement, user, token }) {
             }
             size="md"
             centered
+            fullScreen={(theme) => {
+                const isMobile = window.innerWidth < 768;
+                return isMobile;
+            }}
         >
             {step === 'success' ? (
                 <Stack align="center" py="xl">
@@ -241,7 +245,11 @@ export function BookingModal({ opened, onClose, hebergement, user, token }) {
                         </Alert>
                     )}
 
-                    <Group grow>
+                    <Group grow sx={(theme) => ({
+                        '@media (max-width: 767px)': {
+                            flexDirection: 'column',
+                        },
+                    })}>
                         <DateInput
                             value={dateArrivee}
                             onChange={setDateArrivee}
@@ -262,7 +270,11 @@ export function BookingModal({ opened, onClose, hebergement, user, token }) {
                         />
                     </Group>
 
-                    <Group grow>
+                    <Group grow sx={(theme) => ({
+                        '@media (max-width: 767px)': {
+                            flexDirection: 'column',
+                        },
+                    })}>
                         <NumberInput
                             value={adultes}
                             onChange={setAdultes}

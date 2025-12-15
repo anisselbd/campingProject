@@ -7,40 +7,40 @@ import { useState } from 'react';
 
 
 export function Contact() {
-    const [formData, setFormData]= useState({
+    const [formData, setFormData] = useState({
         nom: '',
         prenom: '',
         email: '',
         sujet: '',
-        message: '' 
+        message: ''
     })
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
 
-  
-    const SERVICE_ID = 'service_kev4anb'; 
-    const TEMPLATE_ID = 'template_hrriepo'; 
-    const PUBLIC_KEY = 'OUkE5zQHHfP7OYFEy'; // Remplacez par votre clé publique EmailJS
-    
 
-    
+    const SERVICE_ID = 'service_kev4anb';
+    const TEMPLATE_ID = 'template_slm3n2g';
+    const PUBLIC_KEY = 'OUkE5zQHHfP7OYFEy'; // Remplacez par votre clé publique EmailJS
+
+
+
     const handleChange = (e) => {
-        
+
         setFormData({ ...formData, [e.target.name]: e.target.value });
         setError(null);
         setSuccess(false);
     };
 
-   
+
     const handleSubmit = async (e) => {
-        e.preventDefault(); 
+        e.preventDefault();
         setLoading(true);
         setError(null);
         setSuccess(false);
 
-        
+
         const requiredFields = ['nom', 'prenom', 'email', 'sujet', 'message'];
         const missingField = requiredFields.find(field => !formData[field].trim());
 
@@ -51,22 +51,22 @@ export function Contact() {
         }
 
         try {
-            
+
             const templateParams = {
-                
+
                 from_name: `${formData.prenom} ${formData.nom}`,
                 from_email: formData.email,
                 subject: formData.sujet,
                 message: formData.message,
             };
 
-            
+
             await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
 
-            
+
             setSuccess(true);
-            
-            setFormData({ nom: '', prenom: '', email: '', sujet: '', message: '' }); 
+
+            setFormData({ nom: '', prenom: '', email: '', sujet: '', message: '' });
 
         } catch (err) {
             console.error('Erreur lors de l\'envoi de l\'email:', err);
@@ -84,7 +84,12 @@ export function Contact() {
 
     return (
 
-                <Container size="xl" py="xl">
+        <Container size="xl" py="xl" sx={(theme) => ({
+            '@media (max-width: 767px)': {
+                paddingTop: theme.spacing.lg,
+                paddingBottom: theme.spacing.lg,
+            },
+        })}>
             <Title order={1} align="center" mb={50} style={{ fontFamily: 'Montserrat, sans-serif' }}>
                 Contactez-nous
             </Title>
@@ -143,7 +148,7 @@ export function Contact() {
                     <Title order={2} size="h3" mb="lg" style={{ fontFamily: 'Montserrat, sans-serif' }}>
                         Envoyez-nous un message
                     </Title>
-                     <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit}>
                         <SimpleGrid cols={{ base: 1, sm: 2 }}>
                             <TextInput name="nom" value={formData.nom} onChange={handleChange} label="Nom" placeholder="Votre nom" required />
                             <TextInput name="prenom" value={formData.prenom} onChange={handleChange} label="Prénom" placeholder="Votre prénom" required />

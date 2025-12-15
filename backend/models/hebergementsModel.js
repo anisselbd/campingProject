@@ -14,11 +14,22 @@ const getAllHebergements = async () => {
 
 const getAvailableHebergements = async () => {
     const [rows] = await db.query(`
-        SELECT id_hebergement, type_hebergement, reference_interne, nom_commercial, 
-               description, capacite_max, surface_m2, localisation, reservable, 
-               date_creation, date_desactivation 
-        FROM accomodation 
-        WHERE reservable = 1 AND date_desactivation IS NULL
+        SELECT 
+            a.id_hebergement, 
+            a.type_hebergement AS type_hebergement_id,
+            a.reference_interne, 
+            a.nom_commercial,
+            a.description, 
+            a.capacite_max, 
+            a.surface_m2, 
+            a.localisation, 
+            a.reservable,
+            a.date_creation, 
+            a.date_desactivation,
+            at.nom AS type_hebergement
+        FROM accomodation a
+        LEFT JOIN accomodation_type at ON at.id_type = a.type_hebergement
+        WHERE a.reservable = 1 AND a.date_desactivation IS NULL
     `);
     return rows;
 };
@@ -26,11 +37,19 @@ const getAvailableHebergements = async () => {
 
 const getHebergementById = async (id) => {
     const [rows] = await db.query(`
-        SELECT a.id_hebergement, a.type_hebergement, a.type_hebergement AS type_hebergement_id, 
-               a.reference_interne, a.nom_commercial, 
-               a.description, a.capacite_max, a.surface_m2, a.localisation, a.reservable, 
-               a.date_creation, a.date_desactivation,
-               at.nom AS type_nom
+        SELECT 
+            a.id_hebergement, 
+            a.type_hebergement AS type_hebergement_id,
+            a.reference_interne, 
+            a.nom_commercial,
+            a.description, 
+            a.capacite_max, 
+            a.surface_m2, 
+            a.localisation, 
+            a.reservable,
+            a.date_creation, 
+            a.date_desactivation,
+            at.nom AS type_hebergement
         FROM accomodation a
         LEFT JOIN accomodation_type at ON at.id_type = a.type_hebergement
         WHERE a.id_hebergement = ?
