@@ -9,6 +9,9 @@ import classes from './CommentHtml.module.css';
 import Giuseppe from '../assets/Giuseppe.png';
 import Julien from '../assets/Julien.png';
 import Cedric from '../assets/Cedric.png';
+import FaqSimple from '../Components/FaqSimple'
+import ArticlesCardsGrid from '../Components/ArticlesCardsGrid'
+
 
 
 
@@ -476,6 +479,8 @@ export function Home() {
             <Hero />
             <Features />
             <AvisClients />
+            <ArticlesCardsGrid />
+            <FaqSimple />
         </>
     );
 }
